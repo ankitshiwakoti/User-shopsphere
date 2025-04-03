@@ -1,11 +1,11 @@
-const express = require('express');
-const path = require('path');
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const session = require('express-session');
-const flash = require('connect-flash');
-const expressLayouts = require('express-ejs-layouts');
-const { fileURLToPath } = require('url');
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import session from 'express-session';
+import flash from 'connect-flash';
+import expressLayouts from 'express-ejs-layouts';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -57,13 +57,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
-const indexRouter = require('./routes/index');
-const productsRouter = require('./routes/products');
-const usersRouter = require('./routes/users');
-const cartRouter = require('./routes/cart');
-const ordersRouter = require('./routes/orders');
+// Import routes
+import indexRouter from './routes/index.js';
+import productsRouter from './routes/products.js';
+import usersRouter from './routes/users.js';
+import cartRouter from './routes/cart.js';
+import ordersRouter from './routes/orders.js';
 
+// Routes
 app.use('/', indexRouter);
 app.use('/products', productsRouter);
 app.use('/users', usersRouter);

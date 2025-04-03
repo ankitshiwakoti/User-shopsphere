@@ -1,31 +1,51 @@
-class Promotion {
-    constructor(id, title, description, image) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.image = image;
-    }
+import mongoose from 'mongoose';
 
-    // This will be replaced with actual database operations later
-    static async findAll() {
-        // Mock implementation - will be replaced with database query
-        return [];
+const promotionSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    image: {
+        type: String,
+        required: true
+    },
+    startDate: {
+        type: Date,
+        default: Date.now
+    },
+    endDate: {
+        type: Date,
+        required: true
+    },
+    active: {
+        type: Boolean,
+        default: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
+});
 
-    static async findById(id) {
-        // Mock implementation - will be replaced with database query
-        return null;
-    }
+// Static methods
+promotionSchema.statics.findAll = async function() {
+    return this.find({ active: true });
+};
 
-    static async create(promotionData) {
-        // Mock implementation - will be replaced with database query
-        return null;
-    }
+promotionSchema.statics.findById = async function(id) {
+    return this.findOne({ _id: id, active: true });
+};
 
-    async save() {
-        // Mock implementation - will be replaced with database query
-        return this;
-    }
-}
+promotionSchema.statics.create = async function(promotionData) {
+    const promotion = new this(promotionData);
+    return promotion.save();
+};
 
-module.exports = Promotion; 
+const Promotion = mongoose.model('Promotion', promotionSchema);
+
+export default Promotion; 

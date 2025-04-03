@@ -1,4 +1,4 @@
-const getHomePage = (req, res) => {
+export const getHomePage = (req, res) => {
     // Mock data - will be replaced with actual database calls later
     const newArrivals = [
         {
@@ -121,8 +121,4 @@ const getHomePage = (req, res) => {
         categories,
         features
     });
-};
-
-module.exports = {
-    getHomePage
 }; 
