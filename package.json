@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "generate-images": "node scripts/generate-images.js"
+    "seed": "node scripts/seed-products.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

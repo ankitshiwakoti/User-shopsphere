@@ -1,0 +1,237 @@
+<%- include('../layouts/header') %>
+
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Sidebar Filters -->
+            <div class="w-full md:w-1/4">
+                <!-- Price Range Filter -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Price Range</h3>
+                    <div class="flex flex-col space-y-4">
+                        <div class="flex items-center">
+                            <input type="range" min="0" max="100" value="50" class="w-full">
+                        </div>
+                        <div class="flex justify-between">
+                            <input type="number" placeholder="Min" class="w-20 p-2 border rounded">
+                            <span class="mx-2">-</span>
+                            <input type="number" placeholder="Max" class="w-20 p-2 border rounded">
+                            <button class="ml-2 px-4 py-2 bg-primary text-white rounded">Go</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Categories -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Product Categories</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-apple-alt mr-2"></i>
+                                Fruits & Vegetables
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-fish mr-2"></i>
+                                Meat & Fish
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-cookie mr-2"></i>
+                                Snacks
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-wine-bottle mr-2"></i>
+                                Beverages
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-heart mr-2"></i>
+                                Beauty & Health
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="flex items-center text-gray-600 hover:text-primary">
+                                <i class="fas fa-bread-slice mr-2"></i>
+                                Bread & Bakery
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Additional Filters -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Filters</h3>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox text-primary">
+                            <span class="ml-2">On Sale</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox text-primary">
+                            <span class="ml-2">In Stock</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="form-checkbox text-primary">
+                            <span class="ml-2">Organic</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="w-full md:w-3/4">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Grocery store with different treasures</h1>
+                    <div class="flex items-center space-x-4">
+                        <select class="border rounded p-2">
+                            <option>Sort by: Featured</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Name: A to Z</option>
+                            <option>Name: Z to A</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <% products.forEach(product=> { %>
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                            <a href="/products/<%= product._id %>" class="block relative">
+                                <!-- Sale Badge -->
+                                <% if (product.discount) { %>
+                                    <span
+                                        class="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-sm">
+                                        <%= product.discount %>% OFF
+                                    </span>
+                                    <% } %>
+
+                                        <!-- Wishlist Button -->
+                                        <button
+                                            class="absolute top-2 right-2 p-2 rounded-full bg-white shadow-md hover:bg-gray-100">
+                                            <i class="far fa-heart text-gray-600"></i>
+                                        </button>
+
+                                        <img src="<%= product.image %>" alt="<%= product.name %>"
+                                            class="w-full h-48 object-cover">
+
+                                        <div class="p-4">
+                                            <h2 class="text-lg font-semibold mb-2 line-clamp-2">
+                                                <%= product.name %>
+                                            </h2>
+
+                                            <!-- Price Section -->
+                                            <div class="mb-2">
+                                                <span class="text-xl font-bold text-primary">$<%=
+                                                        product.price.toFixed(2) %></span>
+                                                <% if (product.oldPrice) { %>
+                                                    <span class="text-sm text-gray-500 line-through ml-2">$<%=
+                                                            product.oldPrice.toFixed(2) %></span>
+                                                    <% } %>
+                                            </div>
+
+                                            <!-- Stock Status -->
+                                            <div class="mb-3">
+                                                <span
+                                                    class="text-sm <%= product.stock > 0 ? 'text-green-600' : 'text-red-600' %>">
+                                                    <%= product.stock> 0 ? 'In Stock' : 'Out of Stock' %>
+                                                </span>
+                                            </div>
+
+                                            <!-- Add to Cart Button -->
+                                            <button onclick="addToCart('<%= product._id %>')"
+                                                class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
+                                                <%=product.stock===0 ? 'disabled' : '' %>>
+                                                <%= product.stock===0 ? 'Out of Stock' : 'Add to Cart' %>
+                                            </button>
+                                        </div>
+                            </a>
+                        </div>
+                        <% }) %>
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        <a href="#" class="px-3 py-2 rounded-lg border hover:bg-gray-100">Previous</a>
+                        <a href="#" class="px-3 py-2 rounded-lg border bg-primary text-white">1</a>
+                        <a href="#" class="px-3 py-2 rounded-lg border hover:bg-gray-100">2</a>
+                        <a href="#" class="px-3 py-2 rounded-lg border hover:bg-gray-100">3</a>
+                        <span class="px-3 py-2">...</span>
+                        <a href="#" class="px-3 py-2 rounded-lg border hover:bg-gray-100">Next</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast"
+        class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300">
+    </div>
+
+    <script>
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('translate-y-full', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            if (isError) {
+                toast.classList.add('bg-red-600');
+            } else {
+                toast.classList.add('bg-green-600');
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+
+        async function addToCart(productId) {
+            try {
+                const button = event.target;
+                button.disabled = true;
+                button.innerHTML = 'Adding...';
+
+                const response = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        quantity: 1
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cartCount;
+                    }
+                    showToast('Product added to cart successfully!');
+                } else {
+                    showToast(data.message || 'Failed to add product to cart', true);
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showToast('Failed to add product to cart. Please try again.', true);
+            } finally {
+                const button = event.target;
+                button.disabled = false;
+                button.innerHTML = 'Add to Cart';
+            }
+        }
+    </script>
+
+    <%- include('../layouts/footer') %>
