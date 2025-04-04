@@ -27,7 +27,7 @@
                         <li>
                             <a href="#" class="flex items-center text-gray-600 hover:text-primary">
                                 <i class="fas fa-apple-alt mr-2"></i>
-                                 Fresh Fruits & Vegetables
+                                Fresh Fruits & Vegetables
                             </a>
                         </li>
                         <li>
@@ -147,7 +147,7 @@
                                             <!-- Add to Cart Button -->
                                             <button onclick="addToCart('<%= product._id %>')"
                                                 class="w-full bg-primary text-white px-4 py-2 rounded hover:bg-primary-dark transition-colors"
-                                                <%=product.stock===0 ? 'disabled' : '' %>>
+                                                <%=product.stock===0 ? 'Disabled' : '' %>>
                                                 <%= product.stock===0 ? 'Out of Stock' : 'Add to Cart' %>
                                             </button>
                                         </div>
