@@ -1,193 +1,220 @@
-<%- include('layouts/header') %>
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+            <li class="breadcrumb-item active"><%= product.name %></li>
+        </ol>
+    </nav>
 
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Product Image -->
-            <div class="product-image-container">
-                <img src="<%= product.image %>" alt="<%= product.name %>" class="w-full h-auto rounded-lg shadow-lg">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <div class="product-images">
+                <div class="main-image mb-3">
+                    <img src="<%= product.image %>" alt="<%= product.name %>" class="img-fluid rounded">
+                    <% if (product.discount) { %>
+                        <div class="badge-overlay">
+                            <span class="badge bg-danger">-<%= product.discount %>%</span>
+                        </div>
+                    <% } %>
+                </div>
+                <div class="thumbnail-images">
+                    <div class="row g-2">
+                        <% product.thumbnails.forEach(thumbnail => { %>
+                            <div class="col-3">
+                                <img src="<%= thumbnail %>" alt="Thumbnail" class="img-fluid rounded cursor-pointer">
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <!-- Product Details -->
-            <div class="product-details">
-                <h1 class="text-3xl font-bold mb-4">
-                    <%= product.name %>
-                </h1>
-
-                <!-- Price Section -->
-                <div class="mb-4">
-                    <span class="text-2xl font-bold text-primary">$<%= product.price.toFixed(2) %></span>
-                    <% if (product.oldPrice) { %>
-                        <span class="text-lg text-gray-500 line-through ml-2">$<%= product.oldPrice.toFixed(2) %></span>
-                        <span class="text-green-600 ml-2">
-                            <%= product.discount %>% OFF
-                        </span>
+        <!-- Product Info -->
+        <div class="col-md-6">
+            <div class="product-info">
+                <div class="category-badge mb-2">
+                    <span class="badge bg-light text-dark"><%= product.category %></span>
+                </div>
+                
+                <h1 class="product-title mb-3"><%= product.name %></h1>
+                
+                <div class="product-rating mb-3">
+                    <div class="stars">
+                        <% for(let i = 0; i < 5; i++) { %>
+                            <i class="fas fa-star <%= i < Math.floor(product.rating) ? 'text-warning' : 'text-muted' %>"></i>
                         <% } %>
+                    </div>
+                    <span class="rating-count">(<%= product.reviewCount %> Reviews)</span>
                 </div>
 
-                <!-- Badges -->
-                <% if (product.badges && product.badges.length> 0) { %>
-                    <div class="flex gap-2 mb-4">
-                        <% product.badges.forEach(badge=> { %>
-                            <span
-                                class="px-3 py-1 text-sm rounded-full <%= badge === 'ORGANIC' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' %>">
-                                <%= badge %>
-                            </span>
-                            <% }) %>
-                    </div>
+                <div class="product-price mb-4">
+                    <% if (product.discount) { %>
+                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
+                        <span class="old-price">$<%= product.originalPrice.toFixed(2) %></span>
+                        <span class="discount-badge">(<%= product.discount %>% OFF)</span>
+                    <% } else { %>
+                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
                     <% } %>
+                </div>
 
-                        <!-- Stock Status -->
-                        <div class="mb-4">
-                            <span class="text-lg <%= product.stock > 0 ? 'text-green-600' : 'text-red-600' %>">
-                                <%= product.stock> 0 ? `In Stock (${product.stock} available)` : 'Out of Stock' %>
-                            </span>
-                        </div>
+                <div class="product-description mb-4">
+                    <p><%= product.description %></p>
+                </div>
 
-                        <!-- Description -->
-                        <div class="mb-6">
-                            <h2 class="text-xl font-semibold mb-2">Description</h2>
-                            <p class="text-gray-700">
-                                <%= product.description %>
-                            </p>
-                        </div>
+                <div class="product-variants mb-4">
+                    <h6 class="mb-2">Size</h6>
+                    <div class="size-options">
+                        <% ['S', 'M', 'L', 'XL'].forEach(size => { %>
+                            <button class="btn btn-outline-secondary size-btn"><%= size %></button>
+                        <% }); %>
+                    </div>
+                </div>
 
-                        <!-- Add to Cart Section -->
-                        <div class="flex items-center gap-4 mb-6">
-                            <div class="flex items-center border rounded-lg">
-                                <button class="px-4 py-2 text-lg" onclick="decrementQuantity()">-</button>
-                                <input type="number" id="quantity" value="1" min="1" max="<%= product.stock %>"
-                                    class="w-16 text-center border-x">
-                                <button class="px-4 py-2 text-lg" onclick="incrementQuantity()">+</button>
-                            </div>
-                            <button onclick="addToCart('<%= product._id %>')"
-                                class="bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary-dark transition-colors"
-                                <%=product.stock===0 ? 'disabled' : '' %>>
-                                <%= product.stock===0 ? 'Out of Stock' : 'Add to Cart' %>
+                <div class="quantity-selector mb-4">
+                    <h6 class="mb-2">Quantity</h6>
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-outline-secondary quantity-btn" onclick="updateQuantity(-1)">-</button>
+                        <input type="number" class="form-control quantity-input" value="1" min="1" id="quantity">
+                        <button class="btn btn-outline-secondary quantity-btn" onclick="updateQuantity(1)">+</button>
+                    </div>
+                </div>
+
+                <div class="product-actions">
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <button class="btn btn-primary w-100 add-to-cart-btn">
+                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                             </button>
                         </div>
-
-                        <!-- Reviews Section -->
-                        <div class="border-t pt-6">
-                            <h2 class="text-xl font-semibold mb-4">Customer Reviews</h2>
-                            <div class="flex items-center mb-4">
-                                <div class="flex items-center">
-                                    <% for(let i=1; i <=5; i++) { %>
-                                        <i
-                                            class="fas fa-star <%= i <= product.rating ? 'text-yellow-400' : 'text-gray-300' %>"></i>
-                                        <% } %>
-                                </div>
-                                <span class="ml-2 text-gray-600">(<%= product.numReviews %> reviews)</span>
-                            </div>
-
-                            <% if (product.reviews && product.reviews.length> 0) { %>
-                                <div class="space-y-4">
-                                    <% product.reviews.forEach(review=> { %>
-                                        <div class="border-b pb-4">
-                                            <div class="flex items-center mb-2">
-                                                <span class="font-semibold">
-                                                    <%= review.name %>
-                                                </span>
-                                                <div class="flex items-center ml-2">
-                                                    <% for(let i=1; i <=5; i++) { %>
-                                                        <i
-                                                            class="fas fa-star <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"></i>
-                                                        <% } %>
-                                                </div>
-                                            </div>
-                                            <p class="text-gray-700">
-                                                <%= review.comment %>
-                                            </p>
-                                        </div>
-                                        <% }) %>
-                                </div>
-                                <% } else { %>
-                                    <p class="text-gray-600">No reviews yet.</p>
-                                    <% } %>
+                        <div class="col-4">
+                            <button class="btn btn-outline-secondary w-100 wishlist-btn">
+                                <i class="far fa-heart"></i>
+                            </button>
                         </div>
+                    </div>
+                </div>
+
+                <div class="product-meta mt-4">
+                    <div class="meta-item">
+                        <span class="meta-label">SKU:</span>
+                        <span class="meta-value"><%= product.sku %></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Category:</span>
+                        <span class="meta-value"><%= product.category %></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Tags:</span>
+                        <span class="meta-value"><%= product.tags.join(', ') %></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast"
-        class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-full opacity-0 transition-all duration-300">
+    <!-- Product Tabs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#description">
+                        Description
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#additional">
+                        Additional Information
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">
+                        Reviews (<%= product.reviewCount %>)
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content mt-4" id="productTabContent">
+                <div class="tab-pane fade show active" id="description">
+                    <%= product.fullDescription %>
+                </div>
+                <div class="tab-pane fade" id="additional">
+                    <table class="table">
+                        <tbody>
+                            <% product.additionalInfo.forEach(info => { %>
+                                <tr>
+                                    <th><%= info.label %></th>
+                                    <td><%= info.value %></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="reviews">
+                    <div class="reviews-summary">
+                        <div class="overall-rating">
+                            <h3><%= product.rating %> out of 5</h3>
+                            <div class="stars">
+                                <% for(let i = 0; i < 5; i++) { %>
+                                    <i class="fas fa-star <%= i < Math.floor(product.rating) ? 'text-warning' : 'text-muted' %>"></i>
+                                <% } %>
+                            </div>
+                            <p>Based on <%= product.reviewCount %> reviews</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.remove('translate-y-full', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
+    <!-- Related Products -->
+    <div class="related-products mt-5">
+        <h3 class="section-title mb-4">Related Products</h3>
+        <div class="row g-4">
+            <% relatedProducts.forEach(product => { %>
+                <div class="col-6 col-md-3">
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="<%= product.image %>" alt="<%= product.name %>">
+                            <% if (product.discount) { %>
+                                <div class="badge-overlay">
+                                    <span class="badge bg-danger">-<%= product.discount %>%</span>
+                                </div>
+                            <% } %>
+                        </div>
+                        <div class="product-info">
+                            <h3><%= product.name %></h3>
+                            <div class="price">
+                                <span class="new-price">$<%= product.price.toFixed(2) %></span>
+                                <span class="old-price">$<%= product.originalPrice.toFixed(2) %></span>
+                            </div>
+                            <div class="button-group">
+                                <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
+                                <button class="btn-add">Add to cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </div>
+</div>
 
-            if (isError) {
-                toast.classList.add('bg-red-600');
-            } else {
-                toast.classList.add('bg-green-600');
-            }
+<script>
+function updateQuantity(change) {
+    const quantityInput = document.getElementById('quantity');
+    let newValue = parseInt(quantityInput.value) + change;
+    if (newValue < 1) newValue = 1;
+    quantityInput.value = newValue;
+}
 
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-full', 'opacity-0');
-            }, 3000);
-        }
-
-        function incrementQuantity() {
-            const input = document.getElementById('quantity');
-            const max = parseInt(input.getAttribute('max'));
-            const currentValue = parseInt(input.value);
-            if (currentValue < max) {
-                input.value = currentValue + 1;
-            }
-        }
-
-        function decrementQuantity() {
-            const input = document.getElementById('quantity');
-            const currentValue = parseInt(input.value);
-            if (currentValue > 1) {
-                input.value = currentValue - 1;
-            }
-        }
-
-        async function addToCart(productId) {
-            try {
-                const quantity = parseInt(document.getElementById('quantity').value);
-                const button = event.target;
-                button.disabled = true;
-                button.innerHTML = 'Adding...';
-
-                const response = await fetch('/cart/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        productId,
-                        quantity
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update cart count in the header
-                    const cartCount = document.querySelector('.cart-count');
-                    if (cartCount) {
-                        cartCount.textContent = data.cartCount;
-                    }
-                    showToast('Product added to cart successfully!');
-                } else {
-                    showToast(data.message || 'Failed to add product to cart', true);
-                }
-            } catch (error) {
-                console.error('Error adding to cart:', error);
-                showToast('Failed to add product to cart. Please try again.', true);
-            } finally {
-                const button = event.target;
-                button.disabled = false;
-                button.innerHTML = 'Add to Cart';
-            }
-        }
-    </script>
-
-    <%- include('layouts/footer') %>
+// Thumbnail image click handler
+document.querySelectorAll('.thumbnail-images img').forEach(img => {
+    img.addEventListener('click', function() {
+        const mainImage = document.querySelector('.main-image img');
+        mainImage.src = this.src;
+    });
+});
+</script>
