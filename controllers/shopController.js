@@ -7,7 +7,7 @@ export const getShopPage = async (req, res) => {
             {
                 name: "Fresh Organic Apples",
                 price: 4.99,
-                oldPrice: 5.99,
+                oldPrice: 5.89,
                 discount: 17,
                 thumbnail: "/images/products/apple.jpg",
                 rating: { average: 4.5, count: 45 },
