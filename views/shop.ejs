@@ -10,7 +10,7 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-lg-3">
-            <div class="shop-sidebar sticky-top" style="top: 20px;">
+            <div class="shop-sidebar">
                 <!-- Price Filter -->
                 <div class="card mb-4">
                     <div class="card-body">
@@ -46,8 +46,9 @@
                                     <label class="d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2" checked>
                                         <span class="category-name">Fruits & Vegetables</span>
+                                        <button class="btn-expand">+</button>
                                     </label>
-                                    <button class="btn-expand">+</button>
+                                    
                                 </div>
                             </li>
                             <li>
@@ -63,8 +64,9 @@
                                     <label class="d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2">
                                         <span class="category-name">Beverages</span>
+                                        <button class="btn-expand">+</button>
                                     </label>
-                                    <button class="btn-expand">+</button>
+                                    
                                 </div>
                             </li>
                             <li>
@@ -72,8 +74,9 @@
                                     <label class="d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2">
                                         <span class="category-name">Meats & Seafood</span>
+                                        <button class="btn-expand">+</button>
                                     </label>
-                                    <button class="btn-expand">+</button>
+                                    
                                 </div>
                             </li>
                             <li>
@@ -89,8 +92,9 @@
                                     <label class="d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2">
                                         <span class="category-name">Breads & Bakery</span>
+                                        <button class="btn-expand">+</button>
                                     </label>
-                                    <button class="btn-expand">+</button>
+                                    
                                 </div>
                             </li>
                             <li>
@@ -98,8 +102,9 @@
                                     <label class="d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2">
                                         <span class="category-name">Breakfast & Dairy</span>
+                                        <button class="btn-expand">+</button>
                                     </label>
-                                    <button class="btn-expand">+</button>
+                                    
                                 </div>
                             </li>
                             <li>
@@ -154,10 +159,10 @@
                     </div>
                 </div>
 
-                <!-- Filter by Brands -->
+                <!-- Filter by Brand -->
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h5 class="card-title">Filter by Brands</h5>
+                        <h5 class="card-title">Filter by Brand</h5>
                         <div class="brand-filters">
                             <div class="brand-filter">
                                 <label class="d-flex align-items-center">
@@ -195,195 +200,197 @@
 
         <!-- Products Grid -->
         <div class="col-lg-9">
-            <!-- Sort and View Options -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <select class="form-select">
-                        <option>Sort by latest</option>
-                        <option>Price: Low to High</option>
-                        <option>Price: High to Low</option>
-                        <option>Name: A to Z</option>
-                    </select>
+            <div class="products-grid-container">
+                <!-- Sort and View Options -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <select class="form-select">
+                            <option>Sort by latest</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Name: A to Z</option>
+                        </select>
+                    </div>
+                    <div class="view-options">
+                        <button class="btn btn-outline-secondary active">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="view-options">
-                    <button class="btn btn-outline-secondary active">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                    <button class="btn btn-outline-secondary">
-                        <i class="fas fa-list"></i>
-                    </button>
+
+                <!-- Products Grid -->
+                <div class="row g-4">
+                    <!-- Orange Juice -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/1" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/orangejuice.jpg" alt="Orange Juice">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-15%</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Fresh Orange Juice</h3>
+                                    <div class="price">
+                                        <span class="new-price">$3.99</span>
+                                        <span class="old-price">$4.69</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Apple Juice -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/2" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/applejuice.png" alt="Apple Juice">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-20%</span>
+                                        <span class="badge bg-success">Organic</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Natural Apple Juice</h3>
+                                    <div class="price">
+                                        <span class="new-price">$4.29</span>
+                                        <span class="old-price">$5.39</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Cream Spread -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/3" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/creamspread.png" alt="Cream Spread">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-10%</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Philadelphia Cream Spread</h3>
+                                    <div class="price">
+                                        <span class="new-price">$5.49</span>
+                                        <span class="old-price">$6.09</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Lays Chips -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/4" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/lays.png" alt="Lays Chips">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-25%</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Lays Classic Potato Chips</h3>
+                                    <div class="price">
+                                        <span class="new-price">$2.99</span>
+                                        <span class="old-price">$3.99</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Pizza -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/5" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/pizza.png" alt="Pizza">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-30%</span>
+                                        <span class="badge bg-primary">New</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Fresh Italian Pizza</h3>
+                                    <div class="price">
+                                        <span class="new-price">$8.99</span>
+                                        <span class="old-price">$12.99</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- Tissue Paper -->
+                    <div class="col-6 col-md-4">
+                        <a href="/shop/product/6" class="text-decoration-none">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="/images/products/tissuepaper.png" alt="Tissue Paper">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-5%</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3>Soft Tissue Paper</h3>
+                                    <div class="price">
+                                        <span class="new-price">$4.75</span>
+                                        <span class="old-price">$4.99</span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
+                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
+
+                <!-- Pagination -->
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
-
-            <!-- Products Grid -->
-            <div class="row g-4">
-                <!-- Orange Juice -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/1" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/orangejuice.jpg" alt="Orange Juice">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-15%</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Fresh Orange Juice</h3>
-                                <div class="price">
-                                    <span class="new-price">$3.99</span>
-                                    <span class="old-price">$4.69</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Apple Juice -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/2" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/applejuice.png" alt="Apple Juice">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-20%</span>
-                                    <span class="badge bg-success">Organic</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Natural Apple Juice</h3>
-                                <div class="price">
-                                    <span class="new-price">$4.29</span>
-                                    <span class="old-price">$5.39</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Cream Spread -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/3" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/creamspread.png" alt="Cream Spread">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-10%</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Philadelphia Cream Spread</h3>
-                                <div class="price">
-                                    <span class="new-price">$5.49</span>
-                                    <span class="old-price">$6.09</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Lays Chips -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/4" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/lays.png" alt="Lays Chips">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-25%</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Lays Classic Potato Chips</h3>
-                                <div class="price">
-                                    <span class="new-price">$2.99</span>
-                                    <span class="old-price">$3.99</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Pizza -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/5" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/pizza.png" alt="Pizza">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-30%</span>
-                                    <span class="badge bg-primary">New</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Fresh Italian Pizza</h3>
-                                <div class="price">
-                                    <span class="new-price">$8.99</span>
-                                    <span class="old-price">$12.99</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Tissue Paper -->
-                <div class="col-6 col-md-4">
-                    <a href="/shop/product/6" class="text-decoration-none">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="/images/products/tissuepaper.png" alt="Tissue Paper">
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-5%</span>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>Soft Tissue Paper</h3>
-                                <div class="price">
-                                    <span class="new-price">$4.75</span>
-                                    <span class="old-price">$4.99</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Pagination -->
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1">Previous</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                </ul>
-            </nav>
         </div>
     </div>
 </div>
