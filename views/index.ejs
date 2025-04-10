@@ -7,66 +7,47 @@
             <div class="col-lg-3">
                 <div class="categories-sidebar">
                     <ul class="list-unstyled mb-0">
-                        <li>
-                            <a href="/category/fruits-vegetables" class="d-flex align-items-center">
-                                <i class="fas fa-apple-alt"></i>
-                                Fruits & Vegetables
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/meats-seafood" class="d-flex align-items-center">
-                                <i class="fas fa-fish"></i>
-                                Meats & Seafood
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/breakfast-dairy" class="d-flex align-items-center">
-                                <i class="fas fa-egg"></i>
-                                Breakfast & Dairy
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/beverages" class="d-flex align-items-center">
-                                <i class="fas fa-coffee"></i>
-                                Beverages
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/frozen-foods" class="d-flex align-items-center">
-                                <i class="fas fa-snowflake"></i>
-                                Frozen Foods
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/biscuits-snacks" class="d-flex align-items-center">
-                                <i class="fas fa-cookie"></i>
-                                Biscuits & Snacks
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/grocery-staples" class="d-flex align-items-center">
-                                <i class="fas fa-shopping-basket"></i>
-                                Grocery & Staples
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/household" class="d-flex align-items-center">
-                                <i class="fas fa-home"></i>
-                                Household Needs
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/healthcare" class="d-flex align-items-center">
-                                <i class="fas fa-medkit"></i>
-                                Healthcare
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/category/baby" class="d-flex align-items-center">
-                                <i class="fas fa-baby"></i>
-                                Baby & Pregnancy
-                            </a>
-                        </li>
+                        <% if (categories && categories.length > 0) { %>
+                            <% categories.forEach(category => { %>
+                                <li>
+                                    <div class="category-item">
+                                        <a href="/shop?category=<%= category._id %>" class="d-flex align-items-center">
+                                            <i class="<%= getCategoryIcon(category.name) %>"></i>
+                                            <span class="ms-2"><%= category.name %></span>
+                                        </a>
+                                        <% if (categoryMap.has(category._id.toString())) { %>
+                                            <button type="button" class="category-expand" 
+                                                    aria-label="Expand category"
+                                                    data-category-id="<%= category._id %>"
+                                                    data-category-name="<%= category.name %>">+</button>
+                                        <% } %>
+                                    </div>
+                                    <% if (categoryMap.has(category._id.toString())) { %>
+                                        <ul class="list-unstyled subcategory-list" style="display: none;">
+                                            <% categoryMap.get(category._id.toString()).forEach(subcategory => { %>
+                                                <li>
+                                                    <div class="category-item">
+                                                        <a href="/shop?category=<%= subcategory._id %>" class="d-flex align-items-center">
+                                                            <i class="<%= getCategoryIcon(subcategory.name) %>"></i>
+                                                            <span class="ms-2"><%= subcategory.name %></span>
+                                                        </a>
+                                                    </div>
+                                                </li>
+                                            <% }); %>
+                                        </ul>
+                                    <% } %>
+                                </li>
+                            <% }); %>
+                        <% } else { %>
+                            <li>
+                                <div class="category-item">
+                                    <a href="/shop" class="d-flex align-items-center">
+                                        <i class="fas fa-tag"></i>
+                                        <span class="ms-2">All Categories</span>
+                                    </a>
+                                </div>
+                            </li>
+                        <% } %>
                     </ul>
                 </div>
             </div>
@@ -129,154 +110,65 @@
                         <h2 class="mb-1">New Arrivals</h2>
                         <p class="text-muted mb-0">Don't miss this opportunity at a special discount just for this week.</p>
                     </div>
-                    <a href="#" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
+                    <a href="/shop" class="view-all">View All <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
         </div>
 
         <div class="row g-4 mt-2">
-            <!-- Apple Juice -->
-            <div class="col-6 col-md-4 col-lg-2.4">
-                <div class="product-card">
-                    <div class="badge-container">
-                        <span class="badge bg-danger">75%</span>
-                        <span class="badge bg-success ms-2">ORGANIC</span>
+            <% if (newArrivals && newArrivals.length > 0) { %>
+                <% newArrivals.forEach(product => { %>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="product-card">
+                            <div class="badge-container">
+                                <span class="badge bg-danger">15%</span>
+                                <% if (product.category && product.category.name) { %>
+                                    <span class="badge bg-success ms-2"><%= product.category.name.toUpperCase() %></span>
+                                <% } %>
+                            </div>
+                            <div class="product-image">
+                                <a href="/product/<%= product._id %>">
+                                    <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" alt="<%= product.name %>">
+                                </a>
+                                <div class="product-actions">
+                                    <button class="action-btn add-to-cart" data-product-id="<%= product._id %>">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                    <button class="action-btn add-to-wishlist" data-product-id="<%= product._id %>">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="action-btn quick-view" data-product-id="<%= product._id %>">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">
+                                    <a href="/product/<%= product._id %>"><%= product.name %></a>
+                                </h3>
+                                <div class="product-price">
+                                    <span class="current-price">$<%= product.price.toFixed(2) %></span>
+                                    <span class="original-price">$<%= (product.price * 1.15).toFixed(2) %></span>
+                                </div>
+                                <div class="product-rating">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                    <span>(4.5)</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="product-image">
-                        <img src="/images/products/orangejuice.jpg" alt="Apple Juice">
-                    </div>
-                    <div class="product-info">
-                        <h3>100 Percent Apple Juice – 64 fl oz Bottle</h3>
-                        <div class="rating">
-                            <span>•</span>
-                            <span>•</span>
-                            <span>•</span>
-                        </div>
-                        <div class="price">
-                            <span class="new-price">$0.50</span>
-                            <span class="old-price">$1.99</span>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                            <button class="btn-add">Add to cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pizza -->
-            <div class="col-6 col-md-4 col-lg-2.4">
-                <div class="product-card">
-                    <div class="badge-container">
-                        <span class="badge bg-danger">11%</span>
-                        <span class="badge bg-info ms-2">COLD SALE</span>
-                    </div>
-                    <div class="product-image">
-                        <img src="/images/products/pizza.png" alt="Pizza">
-                    </div>
-                    <div class="product-info">
-                        <h3>Great Value Rising Crust Frozen Pizza, Supreme</h3>
-                        <div class="rating">
-                            <span>•</span>
-                            <span>•</span>
-                            <span>•</span>
-                        </div>
-                        <div class="price">
-                            <span class="new-price">$8.99</span>
-                            <span class="old-price">$9.99</span>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                            <button class="btn-add">Add to cart</button>
-                        </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No new arrivals available at the moment. Please check back later.
                     </div>
                 </div>
-            </div>
-
-            <!-- Orange Juice -->
-            <div class="col-6 col-md-4 col-lg-2.4">
-                <div class="product-card">
-                    <div class="badge-container">
-                        <span class="badge bg-danger">41%</span>
-                    </div>
-                    <div class="product-image">
-                        <img src="/images/products/Orange juice.png" alt="Orange Juice">
-                    </div>
-                    <div class="product-info">
-                        <h3>Simply Orange Pulp Free Juice – 52 fl oz</h3>
-                        <div class="rating">
-                            <span>•</span>
-                            <span>•</span>
-                        </div>
-                        <div class="price">
-                            <span class="new-price">$2.45</span>
-                            <span class="old-price">$4.13</span>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                            <button class="btn-add">Add to cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pizza Kitchen -->
-            <div class="col-6 col-md-4 col-lg-2.4">
-                <div class="product-card">
-                    <div class="badge-container">
-                        <span class="badge bg-danger">21%</span>
-                        <span class="badge bg-info ms-2">COLD SALE</span>
-                    </div>
-                    <div class="product-image">
-                        <img src="/images/products/pizza.png" alt="Pizza Kitchen">
-                    </div>
-                    <div class="product-info">
-                        <h3>California Pizza Kitchen Margherita, Crispy Thin Crust</h3>
-                        <div class="rating">
-                            <span>•</span>
-                            <span>•</span>
-                            <span>•</span>
-                        </div>
-                        <div class="price">
-                            <span class="new-price">$11.77</span>
-                            <span class="old-price">$14.77</span>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                            <button class="btn-add">Add to cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cantaloupe -->
-            <div class="col-6 col-md-4 col-lg-2.4">
-                <div class="product-card">
-                    <div class="badge-container">
-                        <span class="badge bg-danger">59%</span>
-                        <span class="badge bg-success ms-2">ORGANIC</span>
-                    </div>
-                    <div class="product-image">
-                        <img src="/images/products/creamspread.png" alt="Cantaloupe">
-                    </div>
-                    <div class="product-info">
-                        <h3>Cantaloupe Melon Fresh Organic Cut</h3>
-                        <div class="rating">
-                            <span>•</span>
-                            <span>•</span>
-                            <span>•</span>
-                        </div>
-                        <div class="price">
-                            <span class="new-price">$1.25</span>
-                            <span class="old-price">$2.98</span>
-                        </div>
-                        <div class="button-group">
-                            <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                            <button class="btn-add">Add to cart</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <% } %>
         </div>
 
         <!-- Featured Categories -->
@@ -432,3 +324,129 @@
         </div>
     </div>
 </section> 
+
+<style>
+.categories-sidebar {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem;
+}
+
+.category-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.category-item:last-child {
+    border-bottom: none;
+}
+
+.category-item a {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    flex-grow: 1;
+    padding-right: 30px; /* Make space for the + button */
+}
+
+.category-item a:hover {
+    color: var(--primary-color);
+}
+
+.category-expand {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.2rem;
+    width: 24px;
+    height: 24px;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.category-expand:hover {
+    color: var(--primary-color);
+}
+
+.category-expand.expanded {
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.subcategory-list {
+    margin-left: 1.5rem;
+    padding-top: 0.5rem;
+}
+
+.subcategory-list .category-item {
+    padding: 0.3rem 0;
+}
+
+.subcategory-list .category-item a {
+    font-size: 0.9rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const expandButtons = document.querySelectorAll('.category-expand');
+    
+    expandButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Log category information when expanding/collapsing
+            console.log('Toggling category:', {
+                categoryId: this.dataset.categoryId,
+                categoryName: this.dataset.categoryName,
+                isExpanded: !this.classList.contains('expanded')
+            });
+            
+            // Toggle the expanded class
+            this.classList.toggle('expanded');
+            
+            // Find the subcategory list
+            const categoryItem = this.closest('.category-item');
+            const subcategoryList = categoryItem.nextElementSibling;
+            
+            if (subcategoryList && subcategoryList.classList.contains('subcategory-list')) {
+                // Toggle subcategory visibility with smooth animation
+                if (subcategoryList.style.display === 'none') {
+                    console.log('Expanding subcategories for:', this.dataset.categoryName);
+                    subcategoryList.style.display = 'block';
+                    subcategoryList.style.maxHeight = '0';
+                    subcategoryList.style.opacity = '0';
+                    
+                    // Trigger reflow
+                    subcategoryList.offsetHeight;
+                    
+                    subcategoryList.style.maxHeight = subcategoryList.scrollHeight + 'px';
+                    subcategoryList.style.opacity = '1';
+                    subcategoryList.style.transition = 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out';
+                } else {
+                    console.log('Collapsing subcategories for:', this.dataset.categoryName);
+                    subcategoryList.style.maxHeight = '0';
+                    subcategoryList.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        subcategoryList.style.display = 'none';
+                    }, 300);
+                }
+            }
+        });
+    });
+});
+</script> 

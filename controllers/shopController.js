@@ -1,47 +1,18 @@
 import Product from '../models/Product.js';
+import Category from '../models/Category.js';
+import mongoose from 'mongoose';
 
 export const getShopPage = async (req, res) => {
     try {
-        // Static data for design purposes
-        const products = [
-            {
-                name: "Fresh Organic Apples",
-                price: 4.99,
-                oldPrice: 5.89,
-                discount: 17,
-                thumbnail: "/images/products/apple.jpg",
-                rating: { average: 4.5, count: 45 },
-                stock: { status: "IN_STOCK" }
-            },
-            {
-                name: "Whole Grain Bread",
-                price: 3.99,
-                oldPrice: 4.99,
-                discount: 20,
-                thumbnail: "/images/products/bread.jpg",
-                rating: { average: 4.8, count: 32 },
-                stock: { status: "IN_STOCK" }
-            },
-            {
-                name: "Organic Green Tea",
-                price: 6.99,
-                oldPrice: 8.99,
-                discount: 22,
-                thumbnail: "/images/products/tea.jpg",
-                rating: { average: 4.7, count: 58 },
-                stock: { status: "IN_STOCK" }
-            }
-        ];
+        // Fetch only published products from database
+        const products = await Product.find({ status: 'published' })
+            .populate('category')
+            .sort({ createdAt: -1 });
 
-        const categories = [
-            { name: 'Fruits & Vegetables', icon: 'fas fa-apple-alt' },
-            { name: 'Meat & Fish', icon: 'fas fa-fish' },
-            { name: 'Snacks', icon: 'fas fa-cookie' },
-            { name: 'Beverages', icon: 'fas fa-wine-bottle' },
-            { name: 'Beauty & Health', icon: 'fas fa-heart' },
-            { name: 'Bread & Bakery', icon: 'fas fa-bread-slice' }
-        ];
+        // Fetch categories for sidebar
+        const categories = await Category.find({ status: 'active' });
 
+        // Static data for filters (can be replaced with database data later)
         const brands = ['Fresh', 'Organic', 'Natural'];
         const colors = ['Green', 'Red', 'Yellow', 'Orange'];
 
@@ -71,6 +42,106 @@ export const getShopPage = async (req, res) => {
         res.status(500).render('error', {
             message: 'Failed to load shop page',
             error: {}
+        });
+    }
+};
+
+export const getProductDetails = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        console.log('Fetching product with ID:', productId);
+        
+        // Find the product without population first
+        const product = await Product.findOne({ 
+            _id: productId,
+            status: 'published'
+        });
+        
+        if (!product) {
+            console.log(`Product not found with ID: ${productId}`);
+            return res.status(404).render('product-details', {
+                product: null,
+                relatedProducts: []
+            });
+        }
+        
+        // Log the raw product data
+        console.log('Product found:', product.name);
+        console.log('Product category ID:', product.category);
+        
+        // Fetch the category separately
+        let category = null;
+        if (product.category) {
+            try {
+                category = await Category.findById(product.category);
+                console.log('Category found in database:', category ? category.name : 'Not found');
+            } catch (categoryError) {
+                console.error('Error fetching category:', categoryError);
+            }
+        }
+        
+        // Create a category object for the product
+        const categoryObj = category ? {
+            _id: category._id,
+            name: category.name
+        } : {
+            _id: product.category || 'unknown',
+            name: 'Uncategorized'
+        };
+        
+        // Attach the category object to the product
+        product.category = categoryObj;
+
+        // Get related products (same category, published only)
+        const relatedProducts = await Product.find({
+            category: product.category._id,
+            _id: { $ne: productId },
+            status: 'published'
+        })
+        .limit(4)
+        .select('name price images shortDescription');
+
+        // Calculate fixed discount (15%)
+        const discount = 15;
+        const discountedPrice = product.price * (1 - discount/100);
+
+        // Convert product to plain object
+        const productObj = product.toObject();
+        
+        // Ensure category is properly included in the plain object
+        if (!productObj.category && product.category) {
+            productObj.category = {
+                _id: product.category._id,
+                name: product.category.name
+            };
+        }
+
+        // Prepare the data for the view
+        const viewData = {
+            title: `${product.name} - ShopSphere`,
+            product: {
+                ...productObj,
+                discount,
+                discountedPrice,
+                // Explicitly set the category to ensure it's properly formatted
+                category: {
+                    _id: categoryObj._id,
+                    name: categoryObj.name
+                }
+            },
+            relatedProducts: relatedProducts.map(p => p.toObject())
+        };
+
+        // Log the final data being sent to the view
+        console.log('Final product category being sent to view:', viewData.product.category);
+
+        res.render('product-details', viewData);
+    } catch (error) {
+        console.error('Error in getProductDetails:', error);
+        res.status(500).render('product-details', {
+            product: null,
+            relatedProducts: [],
+            error: 'Error fetching product details. Please try again later.'
         });
     }
 }; 

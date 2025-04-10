@@ -187,40 +187,67 @@ export const deleteProduct = async (req, res) => {
 export const getProductDetails = async (req, res) => {
     try {
         const productId = req.params.id;
-        const product = await Product.findById(productId);
+        
+        // Find product and populate category and reviews
+        const product = await Product.findById(productId)
+            .populate('category')
+            .populate({
+                path: 'reviews',
+                populate: {
+                    path: 'user',
+                    select: 'name'
+                }
+            });
         
         if (!product) {
-            return res.status(404).render('error', {
-                message: 'Product not found'
+            console.log(`Product not found with ID: ${productId}`);
+            return res.status(404).render('product-details', {
+                product: null,
+                relatedProducts: []
             });
         }
 
         // Get related products (same category)
         const relatedProducts = await Product.find({
-            category: product.category,
+            category: product.category._id,
             _id: { $ne: productId }
-        }).limit(4);
+        })
+        .limit(4)
+        .select('name price images stock');
 
         // Calculate rating breakdown
         const ratingBreakdown = {
             5: 0, 4: 0, 3: 0, 2: 0, 1: 0
         };
         
-        product.reviews.forEach(review => {
-            ratingBreakdown[review.rating]++;
-        });
+        if (product.reviews && product.reviews.length > 0) {
+            product.reviews.forEach(review => {
+                if (review.rating >= 1 && review.rating <= 5) {
+                    ratingBreakdown[review.rating]++;
+                }
+            });
+        }
+
+        // Calculate average rating
+        const totalReviews = product.reviews ? product.reviews.length : 0;
+        const averageRating = totalReviews > 0 
+            ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+            : 0;
 
         res.render('product-details', {
             product: {
                 ...product.toObject(),
-                ratingBreakdown
+                ratingBreakdown,
+                averageRating: averageRating.toFixed(1)
             },
             relatedProducts
         });
     } catch (error) {
         console.error('Error fetching product details:', error);
-        res.status(500).render('error', {
-            message: 'Error fetching product details'
+        res.status(500).render('product-details', {
+            product: null,
+            relatedProducts: [],
+            error: 'Error fetching product details. Please try again later.'
         });
     }
 }; 
