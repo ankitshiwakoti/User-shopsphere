@@ -4,217 +4,377 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
-            <li class="breadcrumb-item active"><%= product.name %></li>
+            <% if (product && product.category) { %>
+                <li class="breadcrumb-item"><a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a></li>
+            <% } %>
+            <li class="breadcrumb-item active" aria-current="page"><%= product ? product.name : 'Product Details' %></li>
         </ol>
     </nav>
 
-    <div class="row">
-        <!-- Product Images -->
-        <div class="col-md-6 mb-4">
-            <div class="product-images">
-                <div class="main-image mb-3">
-                    <img src="<%= product.image %>" alt="<%= product.name %>" class="img-fluid rounded">
-                    <% if (product.discount) { %>
-                        <div class="badge-overlay">
-                            <span class="badge bg-danger">-<%= product.discount %>%</span>
-                        </div>
-                    <% } %>
-                </div>
-                <div class="thumbnail-images">
-                    <div class="row g-2">
-                        <% product.thumbnails.forEach(thumbnail => { %>
-                            <div class="col-3">
-                                <img src="<%= thumbnail %>" alt="Thumbnail" class="img-fluid rounded cursor-pointer">
-                            </div>
-                        <% }); %>
-                    </div>
+    <% if (!product) { %>
+        <!-- Product Not Found Message -->
+        <div class="row">
+            <div class="col-12 text-center py-5">
+                <div class="product-not-found">
+                    <i class="fas fa-exclamation-circle fa-4x mb-3 text-warning"></i>
+                    <h2>Product Not Found</h2>
+                    <p class="text-muted">The product you are looking for does not exist or has been removed.</p>
+                    <a href="/shop" class="btn btn-primary mt-3">Return to Shop</a>
                 </div>
             </div>
         </div>
-
-        <!-- Product Info -->
-        <div class="col-md-6">
-            <div class="product-info">
-                <div class="category-badge mb-2">
-                    <span class="badge bg-light text-dark"><%= product.category %></span>
-                </div>
-                
-                <h1 class="product-title mb-3"><%= product.name %></h1>
-                
-                <div class="product-rating mb-3">
-                    <div class="stars">
-                        <% for(let i = 0; i < 5; i++) { %>
-                            <i class="fas fa-star <%= i < Math.floor(product.rating) ? 'text-warning' : 'text-muted' %>"></i>
+    <% } else { %>
+        <div class="row">
+            <!-- Product Images -->
+            <div class="col-lg-6">
+                <div class="product-images">
+                    <div class="main-image">
+                        <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                             alt="<%= product.name %>" 
+                             id="main-product-image">
+                    </div>
+                    <div class="thumbnail-images">
+                        <% if (product.images && product.images.length > 0) { %>
+                            <% product.images.forEach((image, index) => { %>
+                                <div class="thumbnail">
+                                    <img src="<%= image.url %>" 
+                                         alt="<%= product.name %> - Image <%= index + 1 %>"
+                                         onclick="changeMainImage(this.src)">
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="thumbnail">
+                                <img src="/images/products/default-product.jpg" alt="Default Product Image" onclick="changeMainImage(this.src)">
+                            </div>
                         <% } %>
                     </div>
-                    <span class="rating-count">(<%= product.reviewCount %> Reviews)</span>
-                </div>
-
-                <div class="product-price mb-4">
-                    <% if (product.discount) { %>
-                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
-                        <span class="old-price">$<%= product.originalPrice.toFixed(2) %></span>
-                        <span class="discount-badge">(<%= product.discount %>% OFF)</span>
-                    <% } else { %>
-                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
-                    <% } %>
-                </div>
-
-                <div class="product-description mb-4">
-                    <p><%= product.description %></p>
-                </div>
-
-                <div class="product-variants mb-4">
-                    <h6 class="mb-2">Size</h6>
-                    <div class="size-options">
-                        <% ['S', 'M', 'L', 'XL'].forEach(size => { %>
-                            <button class="btn btn-outline-secondary size-btn"><%= size %></button>
-                        <% }); %>
-                    </div>
-                </div>
-
-                <div class="quantity-selector mb-4">
-                    <h6 class="mb-2">Quantity</h6>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-secondary quantity-btn" onclick="updateQuantity(-1)">-</button>
-                        <input type="number" class="form-control quantity-input" value="1" min="1" id="quantity">
-                        <button class="btn btn-outline-secondary quantity-btn" onclick="updateQuantity(1)">+</button>
-                    </div>
-                </div>
-
-                <div class="product-actions">
-                    <div class="row g-2">
-                        <div class="col-8">
-                            <button class="btn btn-primary w-100 add-to-cart-btn">
-                                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-                            </button>
-                        </div>
-                        <div class="col-4">
-                            <button class="btn btn-outline-secondary w-100 wishlist-btn">
-                                <i class="far fa-heart"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="product-meta mt-4">
-                    <div class="meta-item">
-                        <span class="meta-label">SKU:</span>
-                        <span class="meta-value"><%= product.sku %></span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Category:</span>
-                        <span class="meta-value"><%= product.category %></span>
-                    </div>
-                    <div class="meta-item">
-                        <span class="meta-label">Tags:</span>
-                        <span class="meta-value"><%= product.tags.join(', ') %></span>
-                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Product Tabs -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <ul class="nav nav-tabs" id="productTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#description">
-                        Description
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#additional">
-                        Additional Information
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviews">
-                        Reviews (<%= product.reviewCount %>)
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content mt-4" id="productTabContent">
-                <div class="tab-pane fade show active" id="description">
-                    <%= product.fullDescription %>
-                </div>
-                <div class="tab-pane fade" id="additional">
-                    <table class="table">
-                        <tbody>
-                            <% product.additionalInfo.forEach(info => { %>
-                                <tr>
-                                    <th><%= info.label %></th>
-                                    <td><%= info.value %></td>
-                                </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="tab-pane fade" id="reviews">
-                    <div class="reviews-summary">
-                        <div class="overall-rating">
-                            <h3><%= product.rating %> out of 5</h3>
-                            <div class="stars">
-                                <% for(let i = 0; i < 5; i++) { %>
-                                    <i class="fas fa-star <%= i < Math.floor(product.rating) ? 'text-warning' : 'text-muted' %>"></i>
-                                <% } %>
-                            </div>
-                            <p>Based on <%= product.reviewCount %> reviews</p>
-                        </div>
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h1><%= product.name %></h1>
+                    <div class="stock-status">
+                        <span class="badge <%= product.stock > 0 ? 'bg-success' : 'bg-danger' %>">
+                            <%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+                        </span>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Related Products -->
-    <div class="related-products mt-5">
-        <h3 class="section-title mb-4">Related Products</h3>
-        <div class="row g-4">
-            <% relatedProducts.forEach(product => { %>
-                <div class="col-6 col-md-3">
-                    <div class="product-card">
-                        <div class="product-image">
-                            <img src="<%= product.image %>" alt="<%= product.name %>">
-                            <% if (product.discount) { %>
-                                <div class="badge-overlay">
-                                    <span class="badge bg-danger">-<%= product.discount %>%</span>
-                                </div>
+                    
+                    <!-- Add short description here -->
+                    <div class="short-description mt-2 mb-3">
+                        <p class="text-muted"><%= product.shortDescription %></p>
+                    </div>
+                    
+                    <!-- Category display -->
+                    <div class="category mb-3">
+                        <span class="fw-bold">Category: </span>
+                        <% if (product.category && product.category.name) { %>
+                            <a href="/shop?category=<%= product.category._id %>" class="text-primary"><%= product.category.name %></a>
+                        <% } else { %>
+                            <span class="text-muted">Uncategorized</span>
+                        <% } %>
+                    </div>
+                    
+                    <div class="rating">
+                        <div class="stars">
+                            <% const rating = product.averageRating || 0; %>
+                            <% for(let i = 1; i <= 5; i++) { %>
+                                <i class="fas fa-star <%= i <= rating ? 'active' : '' %>"></i>
                             <% } %>
                         </div>
-                        <div class="product-info">
-                            <h3><%= product.name %></h3>
-                            <div class="price">
-                                <span class="new-price">$<%= product.price.toFixed(2) %></span>
-                                <span class="old-price">$<%= product.originalPrice.toFixed(2) %></span>
-                            </div>
-                            <div class="button-group">
-                                <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                <button class="btn-add">Add to cart</button>
+                        <span class="review-count">(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
+                    </div>
+                    <div class="price">
+                        <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
+                        <span class="old-price">$<%= product.price.toFixed(2) %></span>
+                    </div>
+                   
+                    <div class="quantity-selector">
+                        <button class="btn-quantity" onclick="decrementQuantity()">-</button>
+                        <input type="number" id="quantity" value="1" min="1" max="<%= product.stock %>">
+                        <button class="btn-quantity" onclick="incrementQuantity()">+</button>
+                    </div>
+                    
+                    <!-- Add color selection if available -->
+                    <% if (product.attributes && product.attributes.color && product.attributes.color.length > 0) { %>
+                        <div class="attribute-selector mt-3">
+                            <label class="attribute-label">Color:</label>
+                            <div class="color-options">
+                                <% product.attributes.color.forEach(color => { %>
+                                    <div class="color-option">
+                                        <input type="radio" name="color" id="color-<%= color %>" value="<%= color %>" class="color-input">
+                                        <label for="color-<%= color %>" class="color-label" style="background-color: <%= color.toLowerCase() %>;">
+                                            <span class="visually-hidden"><%= color %></span>
+                                        </label>
+                                    </div>
+                                <% }); %>
                             </div>
                         </div>
+                    <% } %>
+                    
+                    <!-- Add size selection if available -->
+                    <% if (product.attributes && product.attributes.size && product.attributes.size.length > 0) { %>
+                        <div class="attribute-selector mt-3">
+                            <label class="attribute-label">Size:</label>
+                            <div class="size-options">
+                                <% product.attributes.size.forEach(size => { %>
+                                    <div class="size-option">
+                                        <input type="radio" name="size" id="size-<%= size %>" value="<%= size %>" class="size-input">
+                                        <label for="size-<%= size %>" class="size-label"><%= size %></label>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    <% } %>
+                    
+                    <div class="action-buttons">
+                        <% if (product.stock <= 0) { %>
+                            <button class="btn-add-cart" disabled>
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        <% } else { %>
+                            <button class="btn-add-cart" onclick="addToCart()">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        <% } %>
+                        <button class="btn-wishlist" onclick="addToWishlist()">
+                            <i class="fas fa-heart"></i>
+                        </button>
                     </div>
                 </div>
-            <% }); %>
+            </div>
         </div>
-    </div>
+        
+        <!-- Product Tabs -->
+        <div class="product-tabs mt-5">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">Description</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications" type="button" role="tab">Specifications</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    <div class="product-description">
+                        <% if (product.description) { %>
+                            <%- product.description %>
+                        <% } else { %>
+                            <p>No description available for this product.</p>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Add specifications tab -->
+                <div class="tab-pane fade" id="specifications" role="tabpanel">
+                    <div class="specifications-content">
+                        <% if (product.specifications && product.specifications.length > 0) { %>
+                            <table class="table table-striped">
+                                <tbody>
+                                    <% product.specifications.forEach(spec => { %>
+                                        <tr>
+                                            <th scope="row" style="width: 30%"><%= spec.name %></th>
+                                            <td><%= spec.value %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        <% } else { %>
+                            <p class="text-muted">No specifications available for this product.</p>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="reviews-content">
+                        <% if (product.reviews && product.reviews.length > 0) { %>
+                            <% product.reviews.forEach(review => { %>
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <div class="reviewer-info">
+                                            <span class="reviewer-name"><%= review.user.name %></span>
+                                            <div class="review-rating">
+                                                <% for(let i = 1; i <= 5; i++) { %>
+                                                    <i class="fas fa-star <%= i <= review.rating ? 'active' : '' %>"></i>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                        <span class="review-date"><%= new Date(review.createdAt).toLocaleDateString() %></span>
+                                    </div>
+                                    <div class="review-comment">
+                                        <%= review.comment %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        <div class="related-products mt-5">
+            <h2>Related Products</h2>
+            <div class="row g-4">
+                <% if (relatedProducts && relatedProducts.length > 0) { %>
+                    <% relatedProducts.forEach(product => { %>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                                         alt="<%= product.name %>">
+                                    <div class="badge-overlay">
+                                        <span class="badge bg-danger">-15%</span>
+                                    </div>
+                                </div>
+                                <div class="product-info">
+                                    <h3><%= product.name %></h3>
+                                    <div class="price">
+                                        <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
+                                        <span class="old-price">$<%= product.price.toFixed(2) %></span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist" onclick="event.preventDefault()">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        <button class="btn-add" onclick="event.preventDefault()">
+                                            <% if (product.stock > 0) { %>
+                                                Add to cart
+                                            <% } else { %>
+                                                Out of Stock
+                                            <% } %>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="col-12 text-center">
+                        <p class="text-muted">No related products found.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    <% } %>
 </div>
 
 <script>
-function updateQuantity(change) {
-    const quantityInput = document.getElementById('quantity');
-    let newValue = parseInt(quantityInput.value) + change;
-    if (newValue < 1) newValue = 1;
-    quantityInput.value = newValue;
+// Remove client-side category handling and rely on server-side data
+document.addEventListener('DOMContentLoaded', function() {
+    // Log product data for debugging only
+    const productData = <%- JSON.stringify(product || {}) %>;
+    console.log('Product object from server:', productData);
+});
+
+function changeMainImage(src) {
+    document.getElementById('main-product-image').src = src;
 }
 
-// Thumbnail image click handler
-document.querySelectorAll('.thumbnail-images img').forEach(img => {
-    img.addEventListener('click', function() {
-        const mainImage = document.querySelector('.main-image img');
-        mainImage.src = this.src;
-    });
+function incrementQuantity() {
+    const input = document.getElementById('quantity');
+    const max = parseInt(input.getAttribute('max'));
+    const currentValue = parseInt(input.value);
+    if (currentValue < max) {
+        input.value = currentValue + 1;
+    }
+}
+
+function decrementQuantity() {
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    if (currentValue > 1) {
+        input.value = currentValue - 1;
+    }
+}
+
+function addToCart() {
+    // Add to cart functionality will be implemented later
+    alert('Product added to cart!');
+}
+
+function addToWishlist() {
+    // Add to wishlist functionality will be implemented later
+    alert('Product added to wishlist!');
+}
+
+// Add styles for color and size selectors
+document.addEventListener('DOMContentLoaded', function() {
+    // Add styles for color and size selectors
+    const style = document.createElement('style');
+    style.textContent = `
+        .attribute-selector {
+            margin-bottom: 15px;
+        }
+        .attribute-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .color-options, .size-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .color-option, .size-option {
+            position: relative;
+        }
+        .color-input, .size-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .color-label {
+            display: block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .color-input:checked + .color-label {
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #007bff;
+        }
+        .size-label {
+            display: inline-block;
+            min-width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            padding: 0 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .size-input:checked + .size-label {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Set default selections
+    const colorInputs = document.querySelectorAll('.color-input');
+    const sizeInputs = document.querySelectorAll('.size-input');
+    
+    if (colorInputs.length > 0) {
+        colorInputs[0].checked = true;
+    }
+    
+    if (sizeInputs.length > 0) {
+        sizeInputs[0].checked = true;
+    }
 });
 </script>

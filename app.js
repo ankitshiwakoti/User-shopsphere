@@ -2,10 +2,10 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import session from 'express-session';
 import flash from 'connect-flash';
 import expressLayouts from 'express-ejs-layouts';
+import connectDB from './config/database.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -17,13 +17,8 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/shopsphere', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('MongoDB connection error:', err));
+// Connect to database
+connectDB();
 
 // Middleware
 app.use(express.json());
