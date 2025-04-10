@@ -182,4 +182,45 @@ export const deleteProduct = async (req, res) => {
             error: error.message
         });
     }
+};
+
+export const getProductDetails = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await Product.findById(productId);
+        
+        if (!product) {
+            return res.status(404).render('error', {
+                message: 'Product not found'
+            });
+        }
+
+        // Get related products (same category)
+        const relatedProducts = await Product.find({
+            category: product.category,
+            _id: { $ne: productId }
+        }).limit(4);
+
+        // Calculate rating breakdown
+        const ratingBreakdown = {
+            5: 0, 4: 0, 3: 0, 2: 0, 1: 0
+        };
+        
+        product.reviews.forEach(review => {
+            ratingBreakdown[review.rating]++;
+        });
+
+        res.render('product-details', {
+            product: {
+                ...product.toObject(),
+                ratingBreakdown
+            },
+            relatedProducts
+        });
+    } catch (error) {
+        console.error('Error fetching product details:', error);
+        res.status(500).render('error', {
+            message: 'Error fetching product details'
+        });
+    }
 }; 

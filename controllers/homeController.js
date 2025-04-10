@@ -1,124 +1,133 @@
-export const getHomePage = (req, res) => {
-    // Mock data - will be replaced with actual database calls later
-    const newArrivals = [
-        {
-            id: 1,
-            name: "100 Percent Apple Juice – 64 fl oz Bottle",
-            price: 0.50,
-            oldPrice: 1.99,
-            discount: 75,
-            image: "/images/products/apple-juice.jpg",
-            badges: ["ORGANIC"],
-            rating: 3
-        },
-        {
-            id: 2,
-            name: "Great Value Rising Crust Frozen Pizza, Supreme",
-            price: 8.99,
-            oldPrice: 9.99,
-            discount: 11,
-            image: "/images/products/pizza.jpg",
-            badges: ["COLD SALE"],
-            rating: 3
-        },
-        {
-            id: 3,
-            name: "Simply Orange Pulp Free Juice – 52 fl oz",
-            price: 2.45,
-            oldPrice: 4.13,
-            discount: 41,
-            image: "/images/products/orange-juice.jpg",
-            badges: [],
-            rating: 2
-        },
-        {
-            id: 4,
-            name: "California Pizza Kitchen Margherita, Crispy Thin Crust",
-            price: 11.77,
-            oldPrice: 14.77,
-            discount: 21,
-            image: "/images/products/pizza-kitchen.jpg",
-            badges: ["COLD SALE"],
-            rating: 3
-        },
-        {
-            id: 5,
-            name: "Cantaloupe Melon Fresh Organic Cut",
-            price: 1.25,
-            oldPrice: 2.98,
-            discount: 59,
-            image: "/images/products/cantaloupe.jpg",
-            badges: ["ORGANIC"],
-            rating: 3
-        },
-        {
-            id: 6,
-            name: "Angel Soft Toilet Paper, 9 Mega Rolls",
-            price: 14.12,
-            oldPrice: 17.12,
-            discount: 18,
-            image: "/images/products/toilet-paper.jpg",
-            badges: [],
-            megaRolls: 9,
-            rating: 3
-        }
-    ];
+import Product from '../models/Product.js';
+import Promotion from '../models/Promotion.js';
 
-    const promotions = [
-        {
-            id: 1,
-            title: "Quality eggs at an affordable price",
-            description: "Fresh farm eggs and fruits delivered to your doorstep",
-            image: "/images/promos/eggs-fruits.jpg"
-        },
-        {
-            id: 2,
-            title: "Snacks that nourish our mind and body",
-            description: "Healthy and delicious green fruits and vegetables",
-            image: "/images/promos/green-fruits.jpg"
-        },
-        {
-            id: 3,
-            title: "Unbeatable quality, unbeatable prices",
-            description: "Wide variety of snack products at great prices",
-            image: "/images/promos/snacks.jpg"
-        }
-    ];
+export const getHomePage = async (req, res) => {
+    try {
+        // Get user's device type
+        const userAgent = req.headers['user-agent'];
+        const isMobile = /mobile|android|iphone|ipad|phone/i.test(userAgent);
+        
+        // Get featured promotions
+        const promotions = await Promotion.findFeatured(3);
+        
+        // Get new arrivals
+        const newArrivals = await Product.findNewArrivals(6);
+        
+        // Get best sellers
+        const bestSellers = await Product.findBestSellers(6);
+        
+        // Get featured products
+        const featuredProducts = await Product.findFeatured(6);
 
-    const categories = [
-        { id: 1, name: "Fruits & Vegetables", icon: "fas fa-apple-alt" },
-        { id: 2, name: "Meat & Fish", icon: "fas fa-fish" },
-        { id: 3, name: "Snacks", icon: "fas fa-cookie" },
-        { id: 4, name: "Beverages", icon: "fas fa-wine-bottle" },
-        { id: 5, name: "Beauty & Health", icon: "fas fa-heart" },
-        { id: 6, name: "Bread & Bakery", icon: "fas fa-bread-slice" }
-    ];
+        // Get categories with their product counts
+        const categories = [
+            { 
+                id: 1, 
+                name: "Fruits & Vegetables",
+                icon: "fas fa-apple-alt",
+                count: await Product.countDocuments({ 
+                    category: 'Fruits & Vegetables',
+                    status: 'ACTIVE'
+                })
+            },
+            { 
+                id: 2, 
+                name: "Meat & Fish",
+                icon: "fas fa-fish",
+                count: await Product.countDocuments({ 
+                    category: 'Meat & Fish',
+                    status: 'ACTIVE'
+                })
+            },
+            { 
+                id: 3, 
+                name: "Snacks",
+                icon: "fas fa-cookie",
+                count: await Product.countDocuments({ 
+                    category: 'Snacks',
+                    status: 'ACTIVE'
+                })
+            },
+            { 
+                id: 4, 
+                name: "Beverages",
+                icon: "fas fa-wine-bottle",
+                count: await Product.countDocuments({ 
+                    category: 'Beverages',
+                    status: 'ACTIVE'
+                })
+            },
+            { 
+                id: 5, 
+                name: "Beauty & Health",
+                icon: "fas fa-heart",
+                count: await Product.countDocuments({ 
+                    category: 'Beauty & Health',
+                    status: 'ACTIVE'
+                })
+            },
+            { 
+                id: 6, 
+                name: "Bread & Bakery",
+                icon: "fas fa-bread-slice",
+                count: await Product.countDocuments({ 
+                    category: 'Bread & Bakery',
+                    status: 'ACTIVE'
+                })
+            }
+        ];
 
-    const features = [
-        {
-            id: 1,
-            title: "Free Shipping",
-            description: "Orders over $200",
-            icon: "fas fa-truck"
-        },
-        {
-            id: 2,
-            title: "Quick Payment",
-            description: "100% secure payment",
-            icon: "fas fa-credit-card"
-        },
-        {
-            id: 3,
-            title: "24/7 Support",
-            description: "Ready for you",
-            icon: "fas fa-headset"
-        }
-    ];
+        // Service features
+        const features = [
+            {
+                id: 1,
+                title: "Free Shipping",
+                description: "Orders over $200",
+                icon: "fas fa-truck"
+            },
+            {
+                id: 2,
+                title: "Quick Payment",
+                description: "100% secure payment",
+                icon: "fas fa-credit-card"
+            },
+            {
+                id: 3,
+                title: "24/7 Support",
+                description: "Ready for you",
+                icon: "fas fa-headset"
+            }
+        ];
 
-    res.render('index', {
-        newArrivals,
-        promotions,
-        categories,
-        features
-    });
+        // Get trending searches
+        const trendingSearches = [
+            "Organic Fruits",
+            "Fresh Vegetables",
+            "Whole Grain Bread",
+            "Healthy Snacks",
+            "Natural Juice"
+        ];
+
+        res.render('index', {
+            isMobile,
+            promotions,
+            newArrivals,
+            bestSellers,
+            featuredProducts,
+            categories,
+            features,
+            trendingSearches,
+            meta: {
+                title: "ShopSphere - Your One-Stop Grocery Shop",
+                description: "Shop fresh groceries, household essentials, and more with fast delivery and great prices.",
+                keywords: "grocery, fresh food, organic, delivery, supermarket"
+            }
+        });
+    } catch (error) {
+        console.error('Error in getHomePage:', error);
+        res.status(500).render('error', {
+            message: 'Something went wrong!',
+            error: process.env.NODE_ENV === 'development' ? error : {}
+        });
+    }
 }; 

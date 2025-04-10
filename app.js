@@ -63,6 +63,7 @@ import productsRouter from './routes/products.js';
 import usersRouter from './routes/users.js';
 import cartRouter from './routes/cart.js';
 import ordersRouter from './routes/orders.js';
+import shopRouter from './routes/shop.js';
 
 // Routes
 app.use('/', indexRouter);
@@ -70,6 +71,7 @@ app.use('/products', productsRouter);
 app.use('/users', usersRouter);
 app.use('/cart', cartRouter);
 app.use('/orders', ordersRouter);
+app.use('/shop', shopRouter);
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -53,6 +53,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Navigation link click handler
+    const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+    
+    // Set initial active state if there's a link with 'active' class
+    const initialActiveLink = document.querySelector('.navbar-nav .nav-link.active');
+    if (initialActiveLink) {
+        initialActiveLink.style.color = 'var(--primary-color)';
+    }
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(event) {
+            // Prevent the default navigation
+            event.preventDefault();
+            
+            // Remove active class from all links
+            navLinks.forEach(navLink => {
+                navLink.classList.remove('active');
+            });
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // If you still want to navigate after setting the active state,
+            // you can add a small delay before navigation
+            setTimeout(() => {
+                window.location.href = this.getAttribute('href');
+            }, 100);
+        });
+    });
+
+    // Sticky header behavior
+    let lastScroll = 0;
+    const announcementBar = document.querySelector('.announcement-bar');
+    const stickyHeaderGroup = document.querySelector('.sticky-header-group');
+    
+    window.addEventListener('scroll', function() {
+        const currentScroll = window.pageYOffset;
+        
+        // Optional: Hide announcement bar on scroll down
+        if (currentScroll > lastScroll && currentScroll > 200) {
+            announcementBar.classList.add('hidden');
+        } else {
+            announcementBar.classList.remove('hidden');
+        }
+        
+        lastScroll = currentScroll;
+    });
 });
 
 // Update cart count in the navbar
