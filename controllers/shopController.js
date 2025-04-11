@@ -1,32 +1,153 @@
 import Product from '../models/Product.js';
 import Category from '../models/Category.js';
+import Wishlist from '../models/Wishlist.js';
 import mongoose from 'mongoose';
 
 export const getShopPage = async (req, res) => {
     try {
-        // Fetch only published products from database
-        const products = await Product.find({ status: 'published' })
+        // Initialize activeCategory
+        let activeCategory = null;
+        
+        // Get filter parameters from query
+        const categoryIds = req.query.category ? (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
+        const minPrice = parseFloat(req.query.minPrice) || 0;
+        const maxPrice = parseFloat(req.query.maxPrice) || 1000;
+        
+        // Build the query
+        let query = { status: 'published' };
+        
+        // Fetch all categories and organize them
+        const allCategories = await Category.find({ status: 'active' }).populate('parent');
+        
+        // Create a map of parent categories and their child categories
+        const parentChildMap = new Map();
+        allCategories.forEach(category => {
+            if (category.parent) {
+                const parentId = category.parent._id.toString();
+                if (!parentChildMap.has(parentId)) {
+                    parentChildMap.set(parentId, []);
+                }
+                parentChildMap.get(parentId).push(category._id.toString());
+            }
+        });
+        
+        // Add category filter if categories are selected
+        if (categoryIds.length > 0) {
+            // Filter out invalid category IDs
+            const validCategoryIds = categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+            
+            if (validCategoryIds.length > 0) {
+                // Create a set to store all category IDs to include (parent + children)
+                const allCategoryIdsToInclude = new Set();
+                
+                // For each selected category
+                validCategoryIds.forEach(categoryId => {
+                    // Add the selected category
+                    allCategoryIdsToInclude.add(categoryId);
+                    
+                    // Check if this is a parent category
+                    if (parentChildMap.has(categoryId)) {
+                        // Add all child categories
+                        parentChildMap.get(categoryId).forEach(childId => {
+                            allCategoryIdsToInclude.add(childId);
+                        });
+                    }
+                });
+                
+                // Convert the set to an array for the query
+                query.category = { $in: Array.from(allCategoryIdsToInclude) };
+            }
+        }
+
+        // Add price filter - only add if minPrice or maxPrice is provided
+        if (minPrice > 0 || maxPrice < 1000) {
+            query.price = {};
+            if (minPrice > 0) {
+                query.price.$gte = minPrice;
+            }
+            if (maxPrice < 1000) {
+                query.price.$lte = maxPrice;
+            }
+        }
+
+        // Log the query for debugging
+        console.log('Product query:', JSON.stringify(query));
+
+        // Fetch products based on query
+        let products = await Product.find(query)
             .populate('category')
             .sort({ createdAt: -1 });
+        
+        // If user is logged in, check which products are in their wishlist
+        if (req.user) {
+            const wishlist = await Wishlist.findOne({ user: req.user._id });
+            const wishlistItems = wishlist ? wishlist.items.map(item => item.toString()) : [];
+            
+            // Add isInWishlist property to each product
+            products = products.map(product => {
+                const productObj = product.toObject();
+                productObj.isInWishlist = wishlistItems.includes(product._id.toString());
+                return productObj;
+            });
+        }
+        
+        // Log the number of products found
+        console.log(`Found ${products.length} products matching the criteria`);
+        
+        // Organize categories into a tree structure
+        const categoryTree = [];
+        const categoryMap = new Map();
 
-        // Fetch categories for sidebar
-        const categories = await Category.find({ status: 'active' });
+        // First pass: create category objects and add them to the map
+        allCategories.forEach(category => {
+            categoryMap.set(category._id.toString(), {
+                ...category.toObject(),
+                children: []
+            });
+        });
 
-        // Static data for filters (can be replaced with database data later)
+        // Second pass: build the tree structure
+        allCategories.forEach(category => {
+            const categoryObj = categoryMap.get(category._id.toString());
+            if (category.parent) {
+                const parentObj = categoryMap.get(category.parent._id.toString());
+                if (parentObj) {
+                    parentObj.children.push(categoryObj);
+                }
+            } else {
+                categoryTree.push(categoryObj);
+            }
+        });
+
+        // Get all selected categories' details
+        const activeCategories = await Category.find({
+            _id: { $in: categoryIds.filter(id => mongoose.Types.ObjectId.isValid(id)) }
+        });
+
+        // Set activeCategory for breadcrumb (use the first selected category if multiple)
+        if (activeCategories.length > 0) {
+            activeCategory = activeCategories[0];
+        }
+
+        // Static data for filters
         const brands = ['Fresh', 'Organic', 'Natural'];
         const colors = ['Green', 'Red', 'Yellow', 'Orange'];
 
-        res.render('shop', {
+        // Ensure activeCategory is properly defined for the view
+        const viewData = {
             products,
-            categories,
+            categories: categoryTree,
             brands,
             colors,
+            activeCategories,
+            activeCategory: activeCategory || null, // Ensure it's explicitly set to null if undefined
             filters: {
-                minPrice: 0,
-                maxPrice: 1000,
+                minPrice,
+                maxPrice,
                 inStock: false,
                 onSale: false,
-                sort: 'newest'
+                sort: 'newest',
+                categories: categoryIds || [] // Ensure categories is always an array
             },
             pagination: {
                 page: 1,
@@ -36,7 +157,9 @@ export const getShopPage = async (req, res) => {
                 hasNextPage: false,
                 hasPrevPage: false
             }
-        });
+        };
+
+        res.render('shop', viewData);
     } catch (error) {
         console.error('Error in getShopPage:', error);
         res.status(500).render('error', {
@@ -71,10 +194,19 @@ export const getProductDetails = async (req, res) => {
         
         // Fetch the category separately
         let category = null;
+        let parentCategory = null;
+        
         if (product.category) {
             try {
-                category = await Category.findById(product.category);
+                // Fetch the category with its parent
+                category = await Category.findById(product.category).populate('parent');
                 console.log('Category found in database:', category ? category.name : 'Not found');
+                
+                // If the category has a parent, fetch it
+                if (category && category.parent) {
+                    parentCategory = category.parent;
+                    console.log('Parent category found:', parentCategory.name);
+                }
             } catch (categoryError) {
                 console.error('Error fetching category:', categoryError);
             }
@@ -83,10 +215,15 @@ export const getProductDetails = async (req, res) => {
         // Create a category object for the product
         const categoryObj = category ? {
             _id: category._id,
-            name: category.name
+            name: category.name,
+            parent: parentCategory ? {
+                _id: parentCategory._id,
+                name: parentCategory.name
+            } : null
         } : {
             _id: product.category || 'unknown',
-            name: 'Uncategorized'
+            name: 'Uncategorized',
+            parent: null
         };
         
         // Attach the category object to the product
@@ -112,7 +249,8 @@ export const getProductDetails = async (req, res) => {
         if (!productObj.category && product.category) {
             productObj.category = {
                 _id: product.category._id,
-                name: product.category.name
+                name: product.category.name,
+                parent: product.category.parent
             };
         }
 
@@ -126,7 +264,8 @@ export const getProductDetails = async (req, res) => {
                 // Explicitly set the category to ensure it's properly formatted
                 category: {
                     _id: categoryObj._id,
-                    name: categoryObj.name
+                    name: categoryObj.name,
+                    parent: categoryObj.parent
                 }
             },
             relatedProducts: relatedProducts.map(p => p.toObject())

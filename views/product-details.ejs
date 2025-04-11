@@ -1,11 +1,25 @@
 <div class="container mt-4">
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1500;">
+        <div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
             <% if (product && product.category) { %>
-                <li class="breadcrumb-item"><a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a></li>
+                <% if (product.category.parent) { %>
+                    <li class="breadcrumb-item"><a href="/shop?category=<%= product.category.parent._id %>"><%= product.category.parent.name %></a></li>
+                    <li class="breadcrumb-item"><a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a></li>
+                <% } else { %>
+                    <li class="breadcrumb-item"><a href="/shop?category=<%= product.category._id %>"><%= product.category.name %></a></li>
+                <% } %>
             <% } %>
             <li class="breadcrumb-item active" aria-current="page"><%= product ? product.name : 'Product Details' %></li>
         </ol>
@@ -53,7 +67,7 @@
 
             <!-- Product Info -->
             <div class="col-lg-6">
-                <div class="product-info">
+                <div class="product-info" data-product-id="<%= product._id %>">
                     <h1><%= product.name %></h1>
                     <div class="stock-status">
                         <span class="badge <%= product.stock > 0 ? 'bg-success' : 'bg-danger' %>">
@@ -70,7 +84,13 @@
                     <div class="category mb-3">
                         <span class="fw-bold">Category: </span>
                         <% if (product.category && product.category.name) { %>
-                            <a href="/shop?category=<%= product.category._id %>" class="text-primary"><%= product.category.name %></a>
+                            <% if (product.category.parent) { %>
+                                <a href="/shop?category=<%= product.category.parent._id %>" class="text-primary"><%= product.category.parent.name %></a>
+                                <span class="text-muted"> > </span>
+                                <a href="/shop?category=<%= product.category._id %>" class="text-primary"><%= product.category.name %></a>
+                            <% } else { %>
+                                <a href="/shop?category=<%= product.category._id %>" class="text-primary"><%= product.category.name %></a>
+                            <% } %>
                         <% } else { %>
                             <span class="text-muted">Uncategorized</span>
                         <% } %>
@@ -296,13 +316,91 @@ function decrementQuantity() {
 }
 
 function addToCart() {
-    // Add to cart functionality will be implemented later
-    alert('Product added to cart!');
+    const productInfo = document.querySelector('.product-info');
+    const productId = productInfo.dataset.productId;
+    const quantity = document.getElementById('quantity').value;
+    const sizeSelect = document.getElementById('size');
+    const size = sizeSelect ? sizeSelect.value : null;
+
+    fetch('/api/cart/add', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            productId,
+            quantity: parseInt(quantity),
+            size
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update cart count in header
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = data.cartCount;
+            }
+            showAlert('Product added to cart successfully!', 'success');
+        } else {
+            showAlert(data.message || 'Failed to add product to cart', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('An error occurred while adding to cart', 'error');
+    });
 }
 
 function addToWishlist() {
-    // Add to wishlist functionality will be implemented later
-    alert('Product added to wishlist!');
+    const productInfo = document.querySelector('.product-info');
+    const productId = productInfo.dataset.productId;
+    const wishlistBtn = document.querySelector('.btn-wishlist i');
+    
+    fetch(`/api/wishlist/add/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Toggle wishlist icon
+            wishlistBtn.classList.toggle('text-danger');
+            // Update wishlist count in header
+            const wishlistCount = document.querySelector('.wishlist-count');
+            if (wishlistCount) {
+                wishlistCount.textContent = data.wishlistCount;
+            }
+            showAlert(data.message || 'Product added to wishlist successfully!', 'success');
+        } else {
+            showAlert(data.message || 'Failed to add product to wishlist', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('An error occurred while adding to wishlist', 'error');
+    });
+}
+
+function showAlert(message, type) {
+    const toast = document.getElementById('toast');
+    const toastBody = toast.querySelector('.toast-body');
+    
+    // Set toast color based on type
+    toast.className = `toast align-items-center text-white border-0 bg-${type === 'success' ? 'success' : 'danger'}`;
+    
+    // Set message
+    toastBody.textContent = message;
+    
+    // Show toast
+    const bsToast = new bootstrap.Toast(toast, {
+        animation: true,
+        autohide: true,
+        delay: 2000
+    });
+    bsToast.show();
 }
 
 // Add styles for color and size selectors
