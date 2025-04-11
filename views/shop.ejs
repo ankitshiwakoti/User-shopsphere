@@ -3,7 +3,10 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item active">Shop</li>
+            <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+            <% if (activeCategory) { %>
+                <li class="breadcrumb-item active"><%= activeCategory.name %></li>
+            <% } %>
         </ol>
     </nav>
 
@@ -11,136 +14,88 @@
         <!-- Sidebar -->
         <div class="col-lg-3">
             <div class="shop-sidebar">
-                <!-- Price Filter -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Widget price filter</h5>
-                        <div class="price-range-inputs mb-3">
-                            <div class="d-flex align-items-center">
-                                <div class="price-input-group">
-                                    <label>Min price</label>
-                                    <input type="number" value="0" class="form-control">
-                                </div>
-                                <span class="mx-2">-</span>
-                                <div class="price-input-group">
-                                    <label>Max price</label>
-                                    <input type="number" value="30" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-                        <div id="priceRange" class="mb-3"></div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="price-text">Price: $0 — $30</div>
-                            <button class="btn btn-filter">Filter</button>
-                        </div>
-                    </div>
+                <!-- Add a global clear all filters button at the top of the sidebar -->
+                <div class="clear-all-filters">
+                    <a href="/shop" class="btn btn-outline-secondary btn-sm w-100">Clear All Filters</a>
                 </div>
 
-                <!-- Categories -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Product Categories</h5>
-                        <ul class="categories-list">
-                            <li>
-                                <div class="category-item active">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2" checked>
-                                        <span class="category-name">Fruits & Vegetables</span>
-                                        <button class="btn-expand">+</button>
-                                    </label>
-                                    
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Baby & Pregnancy</span>
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Beverages</span>
-                                        <button class="btn-expand">+</button>
-                                    </label>
-                                    
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Meats & Seafood</span>
-                                        <button class="btn-expand">+</button>
-                                    </label>
-                                    
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Biscuits & Snacks</span>
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Breads & Bakery</span>
-                                        <button class="btn-expand">+</button>
-                                    </label>
-                                    
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Breakfast & Dairy</span>
-                                        <button class="btn-expand">+</button>
-                                    </label>
-                                    
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Frozen Foods</span>
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Grocery & Staples</span>
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Healthcare</span>
-                                    </label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="category-item">
-                                    <label class="d-flex align-items-center">
-                                        <input type="checkbox" class="form-check-input me-2">
-                                        <span class="category-name">Household Needs</span>
-                                    </label>
-                                </div>
-                            </li>
-                        </ul>
+                <!-- Price Filter -->
+                <div class="price-filter">
+                    <div class="filter-header">
+                        <h3>Price Range</h3>
+                        <button type="button" class="btn-clear-filter" id="clearPriceFilter">Clear</button>
                     </div>
+                    <form id="priceFilterForm" method="GET" action="/shop">
+                        <!-- Preserve category selections -->
+                        <% if (filters.categories && filters.categories.length > 0) { %>
+                            <% filters.categories.forEach(categoryId => { %>
+                                <input type="hidden" name="category" value="<%= categoryId %>">
+                            <% }); %>
+                        <% } %>
+                        
+                        <div class="price-slider-container">
+                            <div class="price-slider">
+                                <div class="slider-track"></div>
+                                <input type="range" class="min-range" min="0" max="1000" value="<%= filters.minPrice || 0 %>" name="minPrice">
+                                <input type="range" class="max-range" min="0" max="1000" value="<%= filters.maxPrice || 1000 %>" name="maxPrice">
+                            </div>
+                            <div class="price-values">
+                                <span class="min-value">$<%= filters.minPrice || 0 %></span>
+                                <span class="max-value">$<%= filters.maxPrice || 1000 %></span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="category-filter">
+                    <div class="filter-header">
+                        <h3>Categories</h3>
+                        <button type="button" class="btn-clear-filter" id="clearCategoryFilter">Clear</button>
+                    </div>
+                    <form id="categoryForm" action="/shop" method="GET">
+                        <!-- Preserve price filter values -->
+                        <input type="hidden" name="minPrice" value="<%= filters.minPrice %>">
+                        <input type="hidden" name="maxPrice" value="<%= filters.maxPrice %>">
+                        
+                        <ul class="category-list">
+                            <% categories.forEach(function(category) { %>
+                                <li class="category-item">
+                                    <div class="category-header">
+                                        <label class="checkbox-container">
+                                            <input type="checkbox" 
+                                                   name="category" 
+                                                   value="<%= category._id %>"
+                                                   <%= filters.categories.includes(category._id.toString()) ? 'checked' : '' %>>
+                                            <span class="checkmark"></span>
+                                            <%= category.name %>
+                                        </label>
+                                        <% if (category.children && category.children.length > 0) { %>
+                                            <button type="button" class="expand-btn" data-category="<%= category._id %>">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                    <% if (category.children && category.children.length > 0) { %>
+                                        <ul class="subcategory-list" data-parent="<%= category._id %>" style="display: none;">
+                                            <% category.children.forEach(function(subcategory) { %>
+                                                <li class="subcategory-item">
+                                                    <label class="checkbox-container">
+                                                        <input type="checkbox" 
+                                                               name="category" 
+                                                               value="<%= subcategory._id %>"
+                                                               <%= filters.categories.includes(subcategory._id.toString()) ? 'checked' : '' %>>
+                                                        <span class="checkmark"></span>
+                                                        <%= subcategory.name %>
+                                                    </label>
+                                                </li>
+                                            <% }); %>
+                                        </ul>
+                                    <% } %>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    </form>
                 </div>
 
                 <!-- Filter by Color -->
@@ -198,8 +153,24 @@
             </div>
         </div>
 
-        <!-- Products Grid -->
+        <!-- Main Content -->
         <div class="col-lg-9">
+            <div class="shop-header mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">
+                            <% if (activeCategory) { %>
+                                <%= activeCategory.name %>
+                            <% } else { %>
+                                All Products
+                            <% } %>
+                        </h4>
+                        <small class="text-muted"><%= products.length %> products found</small>
+                    </div>
+                    <!-- Rest of the shop header -->
+                </div>
+            </div>
+            
             <div class="products-grid-container">
                 <!-- Sort and View Options -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -222,174 +193,84 @@
                 </div>
 
                 <!-- Products Grid -->
-                <div class="row g-4">
-                    <!-- Orange Juice -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/1" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/orangejuice.jpg" alt="Orange Juice">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-15%</span>
+                <div class="row g-4" id="products-grid">
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(product => { %>
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <a href="/shop/product/<%= product._id %>" class="product-link">
+                                    <div class="product-card" data-product-id="<%= product._id %>">
+                                        <div class="product-image">
+                                            <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                                                 alt="<%= product.name %>">
+                                            <div class="badge-overlay">
+                                                <span class="badge bg-danger">-15%</span>
+                                            </div>
+                                        </div>
+                                        <div class="product-info">
+                                            <h3><%= product.name %></h3>
+                                            <div class="price">
+                                                <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
+                                                <span class="old-price">$<%= product.price.toFixed(2) %></span>
+                                            </div>
+                                            <div class="button-group">
+                                                <button class="btn-wishlist" onclick="event.preventDefault(); event.stopPropagation();">
+                                                    <i class="fas fa-heart <%= product.isInWishlist ? 'text-danger' : '' %>"></i>
+                                                </button>
+                                                <button class="btn-add" onclick="event.preventDefault(); event.stopPropagation();">
+                                                    <% if (product.stock > 0) { %>
+                                                        Add to cart
+                                                    <% } else { %>
+                                                        Out of Stock
+                                                    <% } %>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Fresh Orange Juice</h3>
-                                    <div class="price">
-                                        <span class="new-price">$3.99</span>
-                                        <span class="old-price">$4.69</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
+                                </a>
                             </div>
-                        </a>
-                    </div>
-
-                    <!-- Apple Juice -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/2" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/applejuice.png" alt="Apple Juice">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-20%</span>
-                                        <span class="badge bg-success">Organic</span>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Natural Apple Juice</h3>
-                                    <div class="price">
-                                        <span class="new-price">$4.29</span>
-                                        <span class="old-price">$5.39</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
+                        <% }); %>
+                    <% } else { %>
+                        <!-- No Products Available Message -->
+                        <div class="col-12 text-center py-5">
+                            <div class="no-products-message">
+                                <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                                <h3>No Products Available</h3>
+                                <p class="text-muted">We couldn't find any products matching your criteria.</p>
+                                <p class="text-muted">Please check back later or try adjusting your filters.</p>
                             </div>
-                        </a>
-                    </div>
-
-                    <!-- Cream Spread -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/3" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Cream Spread">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-10%</span>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Cream Spread</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.09</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Lays Chips -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/4" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/lays.png" alt="Lays Chips">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-25%</span>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Lays Classic Potato Chips</h3>
-                                    <div class="price">
-                                        <span class="new-price">$2.99</span>
-                                        <span class="old-price">$3.99</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Pizza -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/5" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/pizza.png" alt="Pizza">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-30%</span>
-                                        <span class="badge bg-primary">New</span>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Fresh Italian Pizza</h3>
-                                    <div class="price">
-                                        <span class="new-price">$8.99</span>
-                                        <span class="old-price">$12.99</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-
-                    <!-- Tissue Paper -->
-                    <div class="col-6 col-md-4">
-                        <a href="/shop/product/6" class="text-decoration-none">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/tissuepaper.png" alt="Tissue Paper">
-                                    <div class="badge-overlay">
-                                        <span class="badge bg-danger">-5%</span>
-                                    </div>
-                                </div>
-                                <div class="product-info">
-                                    <h3>Soft Tissue Paper</h3>
-                                    <div class="price">
-                                        <span class="new-price">$4.75</span>
-                                        <span class="old-price">$4.99</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist" onclick="event.preventDefault()"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add" onclick="event.preventDefault()">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                        </div>
+                    <% } %>
                 </div>
 
-                <!-- Pagination -->
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">Previous</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">Next</a>
-                        </li>
-                    </ul>
-                </nav>
+                <!-- Sentinel Element for Infinite Scroll -->
+                <div id="sentinel" class="h-10"></div>
+
+                <!-- Loading Spinner (Hidden by default) -->
+                <div id="loading-spinner" class="text-center my-4 d-none">
+                    <div class="loading-animation">
+                        <div class="spinner-grow text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="spinner-grow text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="spinner-grow text-info" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="spinner-grow text-warning" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="spinner-grow text-danger" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-muted">Loading more products...</p>
+                </div>
+
+                <!-- No More Products Message (Hidden by default) -->
+                <div id="no-more-products" class="text-center my-4 d-none">
+                    <p class="text-muted">No more products to load</p>
+                </div>
             </div>
         </div>
     </div>
@@ -398,92 +279,524 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.css">
 <script src="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.js"></script>
 
+<style>
+/* Loading Animation */
+.loading-animation {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.loading-animation .spinner-grow {
+    width: 12px;
+    height: 12px;
+    animation-delay: calc(0.1s * var(--i, 0));
+}
+
+.loading-animation .spinner-grow:nth-child(1) { --i: 0; }
+.loading-animation .spinner-grow:nth-child(2) { --i: 1; }
+.loading-animation .spinner-grow:nth-child(3) { --i: 2; }
+.loading-animation .spinner-grow:nth-child(4) { --i: 3; }
+.loading-animation .spinner-grow:nth-child(5) { --i: 4; }
+
+.category-filter {
+    margin-bottom: 2rem;
+}
+
+.category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-item {
+    margin-bottom: 0.5rem;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.subcategory-list {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.subcategory-item {
+    margin: 0.25rem 0;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input {
+    margin-right: 0.5rem;
+}
+
+.expand-btn {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: transform 0.3s ease;
+}
+
+.expand-btn.expanded {
+    transform: rotate(45deg);
+}
+
+.subcategory-list {
+    transition: max-height 0.3s ease-out;
+    overflow: hidden;
+}
+
+.price-filter {
+    margin-bottom: 2rem;
+}
+
+.price-slider-container {
+    padding: 1rem 0;
+}
+
+.price-slider {
+    position: relative;
+    width: 100%;
+    height: 5px;
+    background: #e0e0e0;
+    border-radius: 5px;
+    margin: 1rem 0;
+}
+
+.slider-track {
+    position: absolute;
+    height: 100%;
+    background: #4CAF50;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+.min-range,
+.max-range {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: none;
+    pointer-events: none;
+    -webkit-appearance: none;
+}
+
+.min-range::-webkit-slider-thumb,
+.max-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.price-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Add these styles to your existing CSS */
+.filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.btn-clear-filter {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.btn-clear-filter:hover {
+    color: #333;
+    background-color: #f0f0f0;
+}
+
+.clear-all-filters {
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Price Range Slider
-    const priceRangeSlider = document.getElementById('priceRange');
-    if (priceRangeSlider) {
-        noUiSlider.create(priceRangeSlider, {
-            start: [0, 30],
-            connect: true,
-            range: {
-                'min': 0,
-                'max': 30
-            },
-            format: {
-                to: function (value) {
-                    return Math.round(value);
-                },
-                from: function (value) {
-                    return Number(value);
-                }
-            }
-        });
+    // Log all products from the database - with error handling
+    try {
+        const productsData = '<%- JSON.stringify(products || []) %>';
+        console.log('Products from database:', productsData);
+    } catch (error) {
+        console.error('Error logging products:', error);
+    }
+    
+    const priceForm = document.getElementById('priceFilterForm');
+    const minRange = priceForm.querySelector('.min-range');
+    const maxRange = priceForm.querySelector('.max-range');
+    const track = priceForm.querySelector('.slider-track');
+    const minValue = priceForm.querySelector('.min-value');
+    const maxValue = priceForm.querySelector('.max-value');
 
-        const priceMin = document.getElementById('priceMin');
-        const priceMax = document.getElementById('priceMax');
+    let isDragging = false;
+    let debounceTimer = null;
 
-        priceRangeSlider.noUiSlider.on('update', function (values, handle) {
-            if (handle === 0) {
-                priceMin.innerHTML = values[0];
-            } else {
-                priceMax.innerHTML = values[1];
-            }
-        });
+    function updateSlider() {
+        const min = parseInt(minRange.value);
+        const max = parseInt(maxRange.value);
+
+        if (min > max) {
+            const temp = min;
+            minRange.value = max;
+            maxRange.value = temp;
+        }
+
+        const percent1 = (min / minRange.max) * 100;
+        const percent2 = (max / maxRange.max) * 100;
+
+        track.style.left = percent1 + '%';
+        track.style.width = (percent2 - percent1) + '%';
+
+        minValue.textContent = '$' + min;
+        maxValue.textContent = '$' + max;
     }
 
-    // Handle expand/collapse for categories
-    const expandButtons = document.querySelectorAll('.btn-expand');
+    function submitForm() {
+        if (!isDragging) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                priceForm.submit();
+            }, 1000); // Wait 1 second after the user stops dragging
+        }
+    }
+
+    // Update visual state while dragging
+    minRange.addEventListener('input', () => {
+        isDragging = true;
+        updateSlider();
+    });
+
+    maxRange.addEventListener('input', () => {
+        isDragging = true;
+        updateSlider();
+    });
+
+    // Submit form when user releases the slider
+    minRange.addEventListener('change', () => {
+        isDragging = false;
+        submitForm();
+    });
+
+    maxRange.addEventListener('change', () => {
+        isDragging = false;
+        submitForm();
+    });
+
+    // Clear price filter
+    document.getElementById('clearPriceFilter').addEventListener('click', function() {
+        // Reset to default values
+        minRange.value = 0;
+        maxRange.value = 1000;
+        updateSlider();
+        
+        // Remove price parameters from URL and submit
+        const url = new URL(window.location.href);
+        url.searchParams.delete('minPrice');
+        url.searchParams.delete('maxPrice');
+        window.location.href = url.toString();
+    });
+
+    // Clear category filter
+    document.getElementById('clearCategoryFilter').addEventListener('click', function() {
+        // Uncheck all checkboxes
+        const checkboxes = document.querySelectorAll('#categoryForm input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Remove category parameters from URL and submit
+        const url = new URL(window.location.href);
+        url.searchParams.delete('category');
+        window.location.href = url.toString();
+    });
+
+    // Initial update
+    updateSlider();
+
+    // Handle both infinite scroll and category expansion
+    const expandButtons = document.querySelectorAll('.expand-btn');
+    const sentinel = document.querySelector('#sentinel');
+    const loadingSpinner = document.querySelector('#loading-spinner');
+    const noMoreProducts = document.querySelector('#no-more-products');
+    let currentPage = 1;
+    let isLoading = false;
+    let hasMoreProducts = true;
+    
+    // Function to load more products
+    async function loadMoreProducts() {
+        if (isLoading || !hasMoreProducts) return;
+        
+        try {
+            isLoading = true;
+            loadingSpinner.classList.remove('d-none');
+            
+            // Get current URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('page', currentPage + 1);
+            
+            // Fetch more products
+            const response = await fetch(`/shop/api/products?${urlParams.toString()}`);
+            const data = await response.json();
+            
+            if (data.products && data.products.length > 0) {
+                // Append new products to the grid
+                const productsGrid = document.querySelector('#products-grid');
+                data.products.forEach(product => {
+                    const productHtml = `
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <a href="/shop/product/${product._id}" class="product-link">
+                                <div class="product-card" data-product-id="${product._id}">
+                                    <div class="product-image">
+                                        <img src="${product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg'}" 
+                                             alt="${product.name}">
+                                        <div class="badge-overlay">
+                                            <span class="badge bg-danger">-15%</span>
+                                        </div>
+                                    </div>
+                                    <div class="product-info">
+                                        <h3>${product.name}</h3>
+                                        <div class="price">
+                                            <span class="new-price">$${(product.price * 0.85).toFixed(2)}</span>
+                                            <span class="old-price">$${product.price.toFixed(2)}</span>
+                                        </div>
+                                        <div class="button-group">
+                                            <button class="btn-wishlist" onclick="event.preventDefault(); event.stopPropagation();">
+                                                <i class="fas fa-heart${product.isInWishlist ? ' text-danger' : ''}"></i>
+                                            </button>
+                                            <button class="btn-add" onclick="event.preventDefault(); event.stopPropagation();">
+                                                ${product.stock > 0 ? 'Add to cart' : 'Out of Stock'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                    productsGrid.insertAdjacentHTML('beforeend', productHtml);
+                });
+                
+                currentPage++;
+                hasMoreProducts = !data.isLastPage;
+                
+                if (!hasMoreProducts) {
+                    noMoreProducts.classList.remove('d-none');
+                }
+            } else {
+                hasMoreProducts = false;
+                noMoreProducts.classList.remove('d-none');
+            }
+        } catch (error) {
+            console.error('Error loading more products:', error);
+        } finally {
+            isLoading = false;
+            loadingSpinner.classList.add('d-none');
+        }
+    }
+    
+    // Infinite scroll handling
+    if (sentinel) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !isLoading && hasMoreProducts) {
+                    loadMoreProducts();
+                }
+            });
+        }, {
+            rootMargin: '100px'
+        });
+        
+        observer.observe(sentinel);
+    }
+
+    // Handle category expansion
     expandButtons.forEach(button => {
         button.addEventListener('click', function() {
-            this.classList.toggle('active');
+            const categoryId = this.dataset.category;
+            const subcategoryList = document.querySelector(`.subcategory-list[data-parent="${categoryId}"]`);
+            
+            if (subcategoryList) {
+                const isExpanded = this.classList.contains('expanded');
+                this.classList.toggle('expanded');
+                subcategoryList.style.display = isExpanded ? 'none' : 'block';
+            }
         });
     });
 
-    // Infinite Scroll Implementation
-    let page = 1;
-    let loading = false;
-    const productsGrid = document.querySelector('.row.g-4');
-    
-    function loadMoreProducts() {
-        if (loading) return;
-        loading = true;
-        
-        // Simulate loading with setTimeout (replace with actual API call)
-        setTimeout(() => {
-            // Clone the first 6 products for demo
-            const products = document.querySelectorAll('.product-card');
-            const productsToClone = Array.from(products).slice(0, 6);
-            
-            productsToClone.forEach(product => {
-                const productClone = product.parentElement.cloneNode(true);
-                productsGrid.appendChild(productClone);
-            });
-            
-            page++;
-            loading = false;
-        }, 1000);
-    }
-
-    // Intersection Observer for infinite scroll
-    const options = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !loading) {
-                loadMoreProducts();
-            }
+    // Auto-submit form when checkbox changes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            document.getElementById('categoryForm').submit();
         });
-    }, options);
+    });
 
-    // Add a sentinel element at the bottom
-    const sentinel = document.createElement('div');
-    sentinel.className = 'sentinel';
-    productsGrid.appendChild(sentinel);
-    observer.observe(sentinel);
+    // Show subcategories if any child category is selected
+    const selectedSubcategories = document.querySelectorAll('.subcategory-item input[type="checkbox"]:checked');
+    selectedSubcategories.forEach(checkbox => {
+        const subcategoryList = checkbox.closest('.subcategory-list');
+        if (subcategoryList) {
+            subcategoryList.style.display = 'block';
+            const expandBtn = document.querySelector(`.expand-btn[data-category="${subcategoryList.dataset.parent}"]`);
+            if (expandBtn) {
+                expandBtn.classList.add('expanded');
+            }
+        }
+    });
+
+    // Add to cart buttons
+    const addToCartButtons = document.querySelectorAll('.btn-add');
+    
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productCard = this.closest('.product-card');
+            const productId = productCard.dataset.productId;
+            
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update cart count in header
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cartCount;
+                    }
+                    showToast('Product added to cart successfully!', 'success');
+                } else {
+                    showToast(data.message || 'Failed to add product to cart', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while adding to cart', 'error');
+            });
+        });
+    });
+    
+    // Add to wishlist buttons
+    const addToWishlistButtons = document.querySelectorAll('.btn-wishlist');
+    
+    addToWishlistButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productCard = this.closest('.product-card');
+            const productId = productCard.dataset.productId;
+            const icon = this.querySelector('i');
+            const isInWishlist = icon.classList.contains('text-danger');
+            
+            const endpoint = isInWishlist ? `/api/wishlist/remove/${productId}` : `/api/wishlist/add/${productId}`;
+            const method = isInWishlist ? 'DELETE' : 'POST';
+            
+            fetch(endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle wishlist icon
+                    icon.classList.toggle('text-danger');
+                    
+                    // Update wishlist count in header
+                    const wishlistCount = document.querySelector('.wishlist-count');
+                    if (wishlistCount) {
+                        wishlistCount.textContent = data.wishlistCount;
+                    }
+                    
+                    // Show appropriate message
+                    const message = isInWishlist ? 'Product removed from wishlist' : 'Product added to wishlist';
+                    showToast(message, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update wishlist', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred while updating wishlist', 'error');
+            });
+        });
+    });
+    
+    // Show toast message
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastBody = toast.querySelector('.toast-body');
+        
+        // Set toast color based on type
+        toast.className = `toast align-items-center text-white border-0 bg-${type}`;
+        
+        // Set message
+        toastBody.textContent = message;
+        
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast, {
+            animation: true,
+            autohide: true,
+            delay: 2000
+        });
+        bsToast.show();
+    }
 });
-</script> 
+</script>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Add this before the closing </body> tag -->
+<script src="/js/product-interactions.js"></script>
+</body>
+</html>

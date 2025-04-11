@@ -1,17 +1,41 @@
 import express from 'express';
-import { isAuthenticated } from '../middleware/auth.js';
 import Product from '../models/Product.js';
 
 const router = express.Router();
 
-// View cart
+// View cart (web route)
 router.get('/', (req, res) => {
-    res.render('cart/index', {
+    // Get cart from session or initialize empty cart
+    const cartItems = (req.session.cart || []).map(item => ({
+        _id: item.productId,
+        quantity: item.quantity,
+        product: {
+            _id: item.productId,
+            name: item.name,
+            price: item.price,
+            images: [item.image],
+            category: {
+                name: 'Uncategorized'
+            }
+        }
+    }));
+
+    // Calculate subtotal
+    const subtotal = cartItems.reduce((total, item) => {
+        return total + (item.product.price * item.quantity);
+    }, 0);
+
+    res.render('cart', {
         title: 'Shopping Cart - ShopSphere',
-        cart: req.session.cart || []
+        cart: {
+            items: cartItems,
+            subtotal: subtotal,
+            total: subtotal // Use subtotal as total (no tax or shipping)
+        }
     });
 });
 
+// API routes
 // Add item to cart
 router.post('/add', async (req, res) => {
     try {
@@ -56,8 +80,8 @@ router.post('/add', async (req, res) => {
             });
         }
 
-        // Calculate total items in cart
-        const cartCount = req.session.cart.reduce((total, item) => total + item.quantity, 0);
+        // Calculate total items in cart (unique items)
+        const cartCount = req.session.cart.length;
 
         res.json({
             success: true,
@@ -81,8 +105,8 @@ router.delete('/remove/:productId', (req, res) => {
         req.session.cart = req.session.cart.filter(item => item.productId !== productId);
     }
 
-    // Calculate total items in cart
-    const cartCount = req.session.cart.reduce((total, item) => total + item.quantity, 0);
+    // Calculate total items in cart (unique items)
+    const cartCount = req.session.cart ? req.session.cart.length : 0;
 
     res.json({
         success: true,
@@ -96,10 +120,13 @@ router.put('/update/:productId', async (req, res) => {
     try {
         const { productId } = req.params;
         const { quantity } = req.body;
+        
+        console.log('Updating cart item:', { productId, quantity });
 
         // Validate product exists and check stock
         const product = await Product.findById(productId);
         if (!product) {
+            console.log('Product not found:', productId);
             return res.status(404).json({
                 success: false,
                 message: 'Product not found'
@@ -107,6 +134,7 @@ router.put('/update/:productId', async (req, res) => {
         }
 
         if (product.stock < quantity) {
+            console.log('Not enough stock:', { productId, quantity, stock: product.stock });
             return res.status(400).json({
                 success: false,
                 message: 'Not enough stock available'
@@ -116,13 +144,29 @@ router.put('/update/:productId', async (req, res) => {
         // Update quantity in cart
         if (req.session.cart) {
             const itemIndex = req.session.cart.findIndex(item => item.productId === productId);
+            console.log('Found item at index:', itemIndex);
+            
             if (itemIndex > -1) {
                 req.session.cart[itemIndex].quantity = quantity;
+                console.log('Updated quantity to:', quantity);
+            } else {
+                console.log('Item not found in cart:', productId);
+                return res.status(404).json({
+                    success: false,
+                    message: 'Item not found in cart'
+                });
             }
+        } else {
+            console.log('Cart not found');
+            return res.status(404).json({
+                success: false,
+                message: 'Cart not found'
+            });
         }
 
-        // Calculate total items in cart
-        const cartCount = req.session.cart.reduce((total, item) => total + item.quantity, 0);
+        // Calculate total items in cart (unique items)
+        const cartCount = req.session.cart ? req.session.cart.length : 0;
+        console.log('Updated cart count:', cartCount);
 
         res.json({
             success: true,
@@ -134,6 +178,32 @@ router.put('/update/:productId', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error updating cart'
+        });
+    }
+});
+
+// Get cart summary
+router.get('/summary', (req, res) => {
+    try {
+        const cartItems = req.session.cart || [];
+        
+        // Calculate subtotal
+        const subtotal = cartItems.reduce((total, item) => {
+            return total + (item.price * item.quantity);
+        }, 0);
+        
+        res.json({
+            success: true,
+            cart: {
+                subtotal: subtotal,
+                total: subtotal // Use subtotal as total (no tax or shipping)
+            }
+        });
+    } catch (error) {
+        console.error('Error getting cart summary:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error getting cart summary'
         });
     }
 });
