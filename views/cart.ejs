@@ -1,0 +1,267 @@
+<div class="container py-5">
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1500;">
+        <div id="toast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Shopping Cart</h2>
+                    
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <div class="cart-items">
+                            <% cart.items.forEach(item => { %>
+                                <div class="cart-item mb-4 pb-4 border-bottom" data-id="<%= item.product._id %>">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h5 class="mb-1"><%= item.product.name %></h5>
+                                            <p class="text-muted mb-0">Category: <%= item.product.category.name %></p>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="quantity-controls d-flex align-items-center">
+                                                <button class="btn btn-sm btn-outline-secondary decrease-quantity" type="button" style="cursor: pointer;">-</button>
+                                                <input type="number" class="form-control form-control-sm mx-2 quantity-input" value="<%= item.quantity %>" min="1" max="10" style="width: 60px; text-align: center;">
+                                                <button class="btn btn-sm btn-outline-secondary increase-quantity" type="button" style="cursor: pointer;">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <h5 class="mb-0 item-total">$<%= (item.product.price * item.quantity).toFixed(2) %></h5>
+                                            <small class="text-muted item-price">$<%= item.product.price %> each</small>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button class="btn btn-sm btn-outline-danger remove-item">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h4>Your cart is empty</h4>
+                            <p class="text-muted">Looks like you haven't added any items to your cart yet.</p>
+                            <a href="/shop" class="btn btn-primary mt-3">Continue Shopping</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Order Summary</h3>
+                    
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span class="subtotal">$<%= cart.subtotal.toFixed(2) %></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Total</strong>
+                            <strong class="total">$<%= cart.total.toFixed(2) %></strong>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="/checkout" class="btn btn-primary">Proceed to Checkout</a>
+                            <a href="/shop" class="btn btn-outline-secondary">Continue Shopping</a>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">Add items to your cart to see the order summary</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Cart Page');
+    
+    // Quantity controls
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const decreaseButtons = document.querySelectorAll('.decrease-quantity');
+    const increaseButtons = document.querySelectorAll('.increase-quantity');
+    const removeButtons = document.querySelectorAll('.remove-item');
+    
+    console.log('Found quantity inputs:', quantityInputs.length);
+    console.log('Found decrease buttons:', decreaseButtons.length);
+    console.log('Found increase buttons:', increaseButtons.length);
+    console.log('Found remove buttons:', removeButtons.length);
+    
+    // Decrease quantity
+    decreaseButtons.forEach((button, index) => {
+        console.log(`Setting up decrease button ${index}`);
+        button.addEventListener('click', function(e) {
+            console.log('Decrease button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            const input = this.parentElement.querySelector('.quantity-input');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+                updateCartItem(input);
+            }
+        });
+    });
+    
+    // Increase quantity
+    increaseButtons.forEach((button, index) => {
+        console.log(`Setting up increase button ${index}`);
+        button.addEventListener('click', function(e) {
+            console.log('Increase button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            const input = this.parentElement.querySelector('.quantity-input');
+            const currentValue = parseInt(input.value);
+            if (currentValue < 10) {
+                input.value = currentValue + 1;
+                updateCartItem(input);
+            }
+        });
+    });
+    
+    // Manual quantity input
+    quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 1) value = 1;
+            if (value > 10) value = 10;
+            this.value = value;
+            updateCartItem(this);
+        });
+    });
+    
+    // Remove item
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const cartItem = this.closest('.cart-item');
+            const productId = cartItem.dataset.id;
+            
+            fetch(`/api/cart/remove/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cartItem.remove();
+                    updateCartSummary();
+                    showToast('Item removed from cart', 'success');
+                    
+                    // Update cart count in header
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        cartCount.textContent = data.cartCount || '0';
+                    }
+                    
+                    // If cart is empty, reload page to show empty cart message
+                    if (document.querySelectorAll('.cart-item').length === 0) {
+                        location.reload();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error removing item from cart', 'error');
+            });
+        });
+    });
+    
+    // Update cart item
+    function updateCartItem(input) {
+        const cartItem = input.closest('.cart-item');
+        const productId = cartItem.dataset.id;
+        const quantity = parseInt(input.value);
+        
+        fetch(`/api/cart/update/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update item price
+                const priceElement = cartItem.querySelector('.item-total');
+                const pricePerItem = parseFloat(cartItem.querySelector('.item-price').textContent.replace('$', ''));
+                priceElement.textContent = `$${(pricePerItem * quantity).toFixed(2)}`;
+                
+                // Update cart summary
+                updateCartSummary();
+                
+                // Update cart count in header
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount && data.cartCount) {
+                    cartCount.textContent = data.cartCount;
+                }
+                
+                showToast('Cart updated successfully', 'success');
+            } else {
+                showToast(data.message || 'Error updating cart', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error updating cart', 'error');
+        });
+    }
+    
+    // Update cart summary
+    function updateCartSummary() {
+        fetch('/api/cart/summary')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update summary values
+                document.querySelector('.subtotal').textContent = `$${data.cart.subtotal.toFixed(2)}`;
+                document.querySelector('.total').textContent = `$${data.cart.total.toFixed(2)}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Error updating cart summary', 'error');
+        });
+    }
+
+    // Show toast message
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastBody = toast.querySelector('.toast-body');
+        
+        // Set toast color based on type
+        toast.className = `toast align-items-center text-white border-0 bg-${type}`;
+        
+        // Set message
+        toastBody.textContent = message;
+        
+        // Show toast with auto-hide after 2 seconds
+        const bsToast = new bootstrap.Toast(toast, {
+            animation: true,
+            autohide: true,
+            delay: 2000
+        });
+        bsToast.show();
+    }
+});
+</script> 
