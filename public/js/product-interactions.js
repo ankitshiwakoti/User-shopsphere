@@ -32,6 +32,8 @@ function showToast(message, isError = false) {
     toast.style.top = '20px';
     toast.style.right = '20px';
     toast.style.zIndex = '9999';
+    toast.style.padding = '10px 20px';
+    toast.style.borderRadius = '4px';
     toast.innerHTML = message;
     document.body.appendChild(toast);
 
@@ -67,6 +69,7 @@ async function addToCart(productId, quantity = 1) {
         const data = await response.json();
         
         if (response.ok) {
+            // Only update cart count, not wishlist
             updateCartCount(data.cartCount);
             showToast('Product added to cart successfully!');
         } else {
@@ -91,8 +94,15 @@ async function addToWishlist(productId) {
         const data = await response.json();
         
         if (response.ok) {
+            // Only update wishlist count
             updateWishlistCount(data.wishlistCount);
             showToast('Product added to wishlist successfully!');
+            
+            // Update wishlist icon
+            const wishlistBtn = document.querySelector(`.btn-wishlist[data-product-id="${productId}"] i`);
+            if (wishlistBtn) {
+                wishlistBtn.classList.add('text-danger');
+            }
         } else {
             showToast(data.message || 'Failed to add product to wishlist', true);
         }
@@ -102,20 +112,62 @@ async function addToWishlist(productId) {
     }
 }
 
+async function removeFromWishlist(productId) {
+    try {
+        const response = await fetch(`/api/wishlist/remove/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Only update wishlist count
+            updateWishlistCount(data.wishlistCount);
+            showToast('Product removed from wishlist');
+            
+            // Update wishlist icon
+            const wishlistBtn = document.querySelector(`.btn-wishlist[data-product-id="${productId}"] i`);
+            if (wishlistBtn) {
+                wishlistBtn.classList.remove('text-danger');
+            }
+        } else {
+            showToast(data.message || 'Failed to remove product from wishlist', true);
+        }
+    } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        showToast('An error occurred while removing from wishlist', true);
+    }
+}
+
 // Handle wishlist button clicks
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle wishlist button clicks
     const wishlistButtons = document.querySelectorAll('.btn-wishlist');
     wishlistButtons.forEach(button => {
         button.addEventListener('click', async function(e) {
             e.preventDefault();
             e.stopPropagation();
 
-            const productCard = this.closest('.product-card');
-            const productId = productCard.dataset.productId;
+            // Get product ID from data attribute or closest product card
+            const productId = this.dataset.productId || this.closest('.product-card')?.dataset.productId;
+            if (!productId) {
+                console.error('No product ID found');
+                return;
+            }
+
+            // Check if product is already in wishlist
             const icon = this.querySelector('i');
+            const isInWishlist = icon?.classList.contains('text-danger');
 
             try {
-                await addToWishlist(productId);
+                if (isInWishlist) {
+                    await removeFromWishlist(productId);
+                } else {
+                    await addToWishlist(productId);
+                }
             } catch (error) {
                 console.error('Error:', error);
                 showToast('Error updating wishlist', true);
@@ -130,8 +182,17 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             e.stopPropagation();
 
-            const productCard = this.closest('.product-card');
-            const productId = productCard.dataset.productId;
+            // Skip if disabled
+            if (this.disabled) {
+                return;
+            }
+
+            // Get product ID from data attribute or closest product card
+            const productId = this.dataset.productId || this.closest('.product-card')?.dataset.productId;
+            if (!productId) {
+                console.error('No product ID found');
+                return;
+            }
 
             try {
                 await addToCart(productId);
