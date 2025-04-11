@@ -286,6 +286,12 @@
     <% } %>
 </div>
 
+<!-- Add these before the closing body tag -->
+<script src="/js/utils.js"></script>
+<script src="/js/ui-utils.js"></script>
+<script src="/js/cart.js"></script>
+<script src="/js/wishlist.js"></script>
+
 <script>
 // Remove client-side category handling and rely on server-side data
 document.addEventListener('DOMContentLoaded', function() {
@@ -336,71 +342,44 @@ function addToCart() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update cart count in header
-            const cartCount = document.querySelector('.cart-count');
-            if (cartCount) {
-                cartCount.textContent = data.cartCount;
-            }
-            showAlert('Product added to cart successfully!', 'success');
+            // Update cart count in header using our utility
+            UI.updateCartCount(data.cartCount);
+            UI.showToast('Product added to cart successfully!');
         } else {
-            showAlert(data.message || 'Failed to add product to cart', 'error');
+            UI.showToast(data.message || 'Failed to add product to cart', true);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('An error occurred while adding to cart', 'error');
+        UI.showToast('An error occurred while adding to cart', true);
     });
 }
 
 function addToWishlist() {
     const productInfo = document.querySelector('.product-info');
     const productId = productInfo.dataset.productId;
-    const wishlistBtn = document.querySelector('.btn-wishlist i');
     
-    fetch(`/api/wishlist/add/${productId}`, {
+    fetch('/api/wishlist/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ productId })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Toggle wishlist icon
-            wishlistBtn.classList.toggle('text-danger');
-            // Update wishlist count in header
-            const wishlistCount = document.querySelector('.wishlist-count');
-            if (wishlistCount) {
-                wishlistCount.textContent = data.wishlistCount;
-            }
-            showAlert(data.message || 'Product added to wishlist successfully!', 'success');
+            // Update wishlist count in header using our utility
+            UI.updateWishlistCount(data.wishlistCount);
+            UI.showToast('Product added to wishlist successfully!');
         } else {
-            showAlert(data.message || 'Failed to add product to wishlist', 'error');
+            UI.showToast(data.message || 'Failed to add product to wishlist', true);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('An error occurred while adding to wishlist', 'error');
+        UI.showToast('An error occurred while adding to wishlist', true);
     });
-}
-
-function showAlert(message, type) {
-    const toast = document.getElementById('toast');
-    const toastBody = toast.querySelector('.toast-body');
-    
-    // Set toast color based on type
-    toast.className = `toast align-items-center text-white border-0 bg-${type === 'success' ? 'success' : 'danger'}`;
-    
-    // Set message
-    toastBody.textContent = message;
-    
-    // Show toast
-    const bsToast = new bootstrap.Toast(toast, {
-        animation: true,
-        autohide: true,
-        delay: 2000
-    });
-    bsToast.show();
 }
 
 // Add styles for color and size selectors

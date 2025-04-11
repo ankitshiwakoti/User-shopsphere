@@ -1,22 +1,3 @@
-import express from 'express';
-import {
-    getWishlistPage,
-    addToWishlist,
-    removeFromWishlist
-} from '../controllers/wishlistController.js';
-import { isAuthenticated } from '../middleware/auth.js';
-import Wishlist from '../models/Wishlist.js';
-
-const router = express.Router();
-
-// Web route - Get wishlist page
-router.get('/', getWishlistPage);
-
-// API routes
-router.post('/add', addToWishlist);
-router.post('/add/:productId', addToWishlist); // Keep for backward compatibility
-router.delete('/remove/:productId', removeFromWishlist);
-
 // Get wishlist count
 router.get('/count', async (req, res) => {
     try {
@@ -37,6 +18,4 @@ router.get('/count', async (req, res) => {
         console.error('Error getting wishlist count:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
-});
-
-export default router; 
+}); 

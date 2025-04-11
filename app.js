@@ -77,27 +77,66 @@ app.use(async (req, res, next) => {
             const user = await Customer.findById(decoded.id).select('-password');
             
             if (user) {
-                console.log('User found:', user.name);
+                console.log('User found:', user);
                 res.locals.user = user;
                 req.user = user; // Add user to request object
                 
                 // Get cart count
                 const Cart = (await import('./models/Cart.js')).default;
                 const cart = await Cart.findOne({ user: user._id });
-                res.locals.cartCount = cart ? cart.items.length : 0;
+
+                if (cart) {
+                    console.log('Cart found:', cart);
+                    console.log('Cart.items:', cart.items);
+                    const populatedCart = await cart.populate('items');
+                    console.log('Populated cart:', populatedCart);
+                    res.locals.cartCount = populatedCart.items ? populatedCart.items.length : 0;
+                } else {
+                    console.log('No cart found for user:', user._id);
+                    res.locals.cartCount = 0;
+                }
                 
                 // Get wishlist count
                 const Wishlist = (await import('./models/Wishlist.js')).default;
                 const wishlist = await Wishlist.findOne({ user: user._id });
+                console.log('WishUser:', user._id);
+                console.log('Wishlist:', wishlist.items?.length);
                 res.locals.wishlistCount = wishlist ? wishlist.items.length : 0;
             } else {
                 console.log('User not found for ID:', decoded.id);
+                // For non-logged-in users, get counts from session
+                if (!req.session.cart) {
+                    req.session.cart = { items: [] };
+                }
+                if (!req.session.wishlist) {
+                    req.session.wishlist = { items: [] };
+                }
+                res.locals.cartCount = req.session.cart.items.length;
+                res.locals.wishlistCount = req.session.wishlist.items.length;
             }
         } catch (error) {
-            console.error('Token verification failed:', error.message);
+            console.error('Token verification failed:', error);
+            // For non-logged-in users, get counts from session
+            if (!req.session.cart) {
+                req.session.cart = { items: [] };
+            }
+            if (!req.session.wishlist) {
+                req.session.wishlist = { items: [] };
+            }
+            res.locals.cartCount = req.session.cart.items.length;
+            res.locals.wishlistCount = req.session.wishlist.items.length;
         }
     } else {
         console.log('No token found in request');
+        // For non-logged-in users, get counts from session
+        if (!req.session.cart) {
+            req.session.cart = { items: [] };
+        }
+        if (!req.session.wishlist) {
+            req.session.wishlist = { items: [] };
+        }
+        res.locals.cartCount = req.session.cart.items.length;
+        res.locals.wishlistCount = req.session.wishlist.items.length;
     }
 
     next();
