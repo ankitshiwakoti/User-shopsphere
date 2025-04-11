@@ -43,8 +43,9 @@ router.get('/count', async (req, res) => {
 router.get('/items', async (req, res) => {
     try {
         let items = [];
+        const isLoggedIn = !!req.user;
         
-        if (req.user) {
+        if (isLoggedIn) {
             const wishlist = await Wishlist.findOne({ user: req.user._id });
             if (wishlist) {
                 items = wishlist.items.map(item => item.toString());
@@ -55,7 +56,8 @@ router.get('/items', async (req, res) => {
         
         res.json({
             success: true,
-            items
+            items,
+            isLoggedIn
         });
     } catch (error) {
         console.error('Error getting wishlist items:', error);

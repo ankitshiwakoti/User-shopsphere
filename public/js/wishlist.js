@@ -41,8 +41,17 @@ window.Wishlist = {
             if (data.success && data.items) {
                 this.wishlistItems = data.items;
                 
-                // Update localStorage to match server
-                Storage.saveItems('wishlist', this.wishlistItems);
+                // For non-logged-in users, we need to merge server and localStorage
+                if (!data.isLoggedIn) {
+                    // Get items from localStorage
+                    const localItems = Storage.getWishlistItems();
+                    
+                    // Merge items from localStorage and server
+                    this.wishlistItems = [...new Set([...this.wishlistItems, ...localItems])];
+                    
+                    // Update localStorage to match merged items
+                    Storage.saveItems(Storage.WISHLIST_KEY, this.wishlistItems);
+                }
             } else {
                 this.wishlistItems = Storage.getWishlistItems();
             }
@@ -86,6 +95,14 @@ window.Wishlist = {
                     
                     // Update all other heart icons for this product
                     this.updateAllHeartIcons(productId, false);
+                } else {
+                    // For non-logged in users or if server error, fall back to localStorage
+                    icon.classList.remove('text-danger');
+                    const items = Storage.removeFromWishlist(productId);
+                    this.wishlistItems = items;
+                    UI.updateWishlistCount(items.length);
+                    UI.showToast('Product removed from wishlist');
+                    this.updateAllHeartIcons(productId, false);
                 }
             } else {
                 // Add to wishlist
@@ -113,8 +130,28 @@ window.Wishlist = {
                     
                     // Update all other heart icons for this product
                     this.updateAllHeartIcons(productId, true);
+                } else if (data.message === 'Product already in wishlist') {
+                    // Product already in wishlist but UI doesn't show it
+                    icon.classList.add('text-danger');
+                    UI.updateWishlistCount(data.wishlistCount);
+                    UI.showToast('Product already in wishlist');
+                    
+                    // Ensure it's in localStorage and local array
+                    Storage.addToWishlist(productId);
+                    if (!this.wishlistItems.includes(productId)) {
+                        this.wishlistItems.push(productId);
+                    }
+                    
+                    // Update all other heart icons for this product
+                    this.updateAllHeartIcons(productId, true);
                 } else {
-                    UI.showToast(data.message || 'Failed to add to wishlist', true);
+                    // For non-logged in users or if server error, fall back to localStorage
+                    icon.classList.add('text-danger');
+                    const items = Storage.addToWishlist(productId);
+                    this.wishlistItems = items;
+                    UI.updateWishlistCount(items.length);
+                    UI.showToast('Product added to wishlist');
+                    this.updateAllHeartIcons(productId, true);
                 }
             }
         } catch (error) {
