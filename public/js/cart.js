@@ -36,7 +36,12 @@ window.Cart = {
             
             if (data.success) {
                 UI.updateCartCount(data.cartCount);
-                UI.showToast('Product added to cart successfully!');
+                
+                if (data.message === 'Product already in cart') {
+                    UI.showToast('Product already in cart. Quantity updated!');
+                } else {
+                    UI.showToast('Product added to cart successfully!');
+                }
             } else {
                 // If API call fails, use localStorage
                 const items = Storage.addToCart(productId);

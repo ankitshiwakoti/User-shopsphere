@@ -39,4 +39,28 @@ router.get('/count', async (req, res) => {
     }
 });
 
+// Get wishlist items
+router.get('/items', async (req, res) => {
+    try {
+        let items = [];
+        
+        if (req.user) {
+            const wishlist = await Wishlist.findOne({ user: req.user._id });
+            if (wishlist) {
+                items = wishlist.items.map(item => item.toString());
+            }
+        } else {
+            items = req.session.wishlist?.items || [];
+        }
+        
+        res.json({
+            success: true,
+            items
+        });
+    } catch (error) {
+        console.error('Error getting wishlist items:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 export default router; 
