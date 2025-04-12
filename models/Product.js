@@ -32,6 +32,14 @@ const productSchema = new mongoose.Schema({
         ref: 'Category',
         required: [true, 'Product category is required']
     },
+    reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Review'
+    }],
+    averageRating: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
         enum: ['draft', 'published', 'archived'],

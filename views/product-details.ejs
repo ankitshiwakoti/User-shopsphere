@@ -94,8 +94,8 @@
                         <% } else { %>
                             <span class="text-muted">Uncategorized</span>
                         <% } %>
-                    </div>
-                    
+                </div>
+
                     <div class="rating">
                         <div class="stars">
                             <% const rating = product.averageRating || 0; %>
@@ -114,8 +114,8 @@
                         <button class="btn-quantity" onclick="decrementQuantity()">-</button>
                         <input type="number" id="quantity" value="1" min="1" max="<%= product.stock %>">
                         <button class="btn-quantity" onclick="incrementQuantity()">+</button>
-                    </div>
-                    
+                        </div>
+
                     <!-- Add color selection if available -->
                     <% if (product.attributes && product.attributes.color && product.attributes.color.length > 0) { %>
                         <div class="attribute-selector mt-3">
@@ -164,8 +164,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
+                        </div>
+
         <!-- Product Tabs -->
         <div class="product-tabs mt-5">
             <ul class="nav nav-tabs" id="productTabs" role="tablist">
@@ -186,10 +186,10 @@
                             <%- product.description %>
                         <% } else { %>
                             <p>No description available for this product.</p>
-                        <% } %>
-                    </div>
-                </div>
-                
+                                        <% } %>
+                                </div>
+                            </div>
+
                 <!-- Add specifications tab -->
                 <div class="tab-pane fade" id="specifications" role="tabpanel">
                     <div class="specifications-content">
@@ -206,34 +206,80 @@
                             </table>
                         <% } else { %>
                             <p class="text-muted">No specifications available for this product.</p>
-                        <% } %>
-                    </div>
-                </div>
-                
-                <div class="tab-pane fade" id="reviews" role="tabpanel">
-                    <div class="reviews-content">
-                        <% if (product.reviews && product.reviews.length > 0) { %>
-                            <% product.reviews.forEach(review => { %>
-                                <div class="review-item">
-                                    <div class="review-header">
-                                        <div class="reviewer-info">
-                                            <span class="reviewer-name"><%= review.user.name %></span>
-                                            <div class="review-rating">
-                                                <% for(let i = 1; i <= 5; i++) { %>
-                                                    <i class="fas fa-star <%= i <= review.rating ? 'active' : '' %>"></i>
-                                                <% } %>
+                                                        <% } %>
+                                                </div>
                                             </div>
+                
+                <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                    <div class="reviews-section">
+                        <h3 class="mb-4">Customer Reviews</h3>
+                        
+                        <% if (locals.user) { %>
+                            <!-- Review Form -->
+                            <div class="review-form mb-4">
+                                <h4>Write a Review</h4>
+                                <form id="reviewForm" class="mt-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Rating</label>
+                                        <div class="rating-input">
+                                            <input type="radio" name="rating" id="rating5" value="5" required>
+                                            <label for="rating5" class="star-label"><i class="fas fa-star"></i></label>
+                                            <input type="radio" name="rating" id="rating4" value="4">
+                                            <label for="rating4" class="star-label"><i class="fas fa-star"></i></label>
+                                            <input type="radio" name="rating" id="rating3" value="3">
+                                            <label for="rating3" class="star-label"><i class="fas fa-star"></i></label>
+                                            <input type="radio" name="rating" id="rating2" value="2">
+                                            <label for="rating2" class="star-label"><i class="fas fa-star"></i></label>
+                                            <input type="radio" name="rating" id="rating1" value="1">
+                                            <label for="rating1" class="star-label"><i class="fas fa-star"></i></label>
                                         </div>
-                                        <span class="review-date"><%= new Date(review.createdAt).toLocaleDateString() %></span>
                                     </div>
-                                    <div class="review-comment">
-                                        <%= review.comment %>
+                                    <div class="mb-3">
+                                        <label for="reviewTitle" class="form-label">Title</label>
+                                        <input type="text" class="form-control" id="reviewTitle" name="title" required>
                                     </div>
-                                </div>
-                            <% }); %>
+                                    <div class="mb-3">
+                                        <label for="reviewComment" class="form-label">Your Review</label>
+                                        <textarea class="form-control" id="reviewComment" name="comment" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                                </form>
+                            </div>
                         <% } else { %>
-                            <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                            <div class="alert alert-info">
+                                Please <a href="/login">log in</a> to write a review.
+                            </div>
                         <% } %>
+
+                        <!-- Reviews List -->
+                        <div id="reviewsList" class="mt-4">
+                            <% if (product.reviews && product.reviews.length > 0) { %>
+                                <% product.reviews.forEach(review => { %>
+                                    <div class="review-item">
+                                        <div class="review-header">
+                                            <div class="reviewer-info">
+                                                <h5 class="reviewer-name"><%= review.user ? review.user.email : 'Anonymous' %></h5>
+                                                <div class="review-rating">
+                                                    <% for(let i = 1; i <= 5; i++) { %>
+                                                        <i class="fas fa-star <%= i <= review.rating ? 'text-warning' : 'text-muted' %>"></i>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+                                            <span class="review-date"><%= new Date(review.createdAt).toLocaleDateString() %></span>
+                                        </div>
+                                        <div class="review-content">
+                                            <h6 class="review-title"><%= review.title %></h6>
+                                            <p class="review-comment"><%= review.comment %></p>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="text-center py-4">
+                                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                                </div>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -267,9 +313,9 @@
                                         <button class="btn-add" data-product-id="<%= product._id %>" <%= product.stock <= 0 ? 'disabled' : '' %>>
                                             <% if (product.stock > 0) { %>
                                                 Add to cart
-                                            <% } else { %>
+                                <% } else { %>
                                                 Out of Stock
-                                            <% } %>
+                                    <% } %>
                                         </button>
                                     </div>
                                 </div>
@@ -284,7 +330,7 @@
             </div>
         </div>
     <% } %>
-</div>
+    </div>
 
 <!-- Add these before the closing body tag -->
 <script src="/js/utils.js"></script>
@@ -292,7 +338,7 @@
 <script src="/js/cart.js"></script>
 <script src="/js/wishlist.js"></script>
 
-<script>
+    <script>
 // Remove client-side category handling and rely on server-side data
 document.addEventListener('DOMContentLoaded', function() {
     // Log product data for debugging only
@@ -302,24 +348,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function changeMainImage(src) {
     document.getElementById('main-product-image').src = src;
-}
+        }
 
-function incrementQuantity() {
-    const input = document.getElementById('quantity');
-    const max = parseInt(input.getAttribute('max'));
-    const currentValue = parseInt(input.value);
-    if (currentValue < max) {
-        input.value = currentValue + 1;
-    }
-}
+        function incrementQuantity() {
+            const input = document.getElementById('quantity');
+            const max = parseInt(input.getAttribute('max'));
+            const currentValue = parseInt(input.value);
+            if (currentValue < max) {
+                input.value = currentValue + 1;
+            }
+        }
 
-function decrementQuantity() {
-    const input = document.getElementById('quantity');
-    const currentValue = parseInt(input.value);
-    if (currentValue > 1) {
-        input.value = currentValue - 1;
-    }
-}
+        function decrementQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
 
 function addToCart() {
     const productInfo = document.querySelector('.product-info');
@@ -329,12 +375,12 @@ function addToCart() {
     const size = sizeSelect ? sizeSelect.value : null;
 
     fetch('/api/cart/add', {
-        method: 'POST',
-        headers: {
+                    method: 'POST',
+                    headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            productId,
+                    },
+                    body: JSON.stringify({
+                        productId,
             quantity: parseInt(quantity),
             size
         })
@@ -427,4 +473,226 @@ document.addEventListener('DOMContentLoaded', function() {
         sizeInputs[0].checked = true;
     }
 });
-</script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    const productId = '<%= product._id %>';
+    const reviewForm = document.getElementById('reviewForm');
+
+    // Handle star rating hover and click
+    const starLabels = document.querySelectorAll('.star-label');
+    starLabels.forEach(label => {
+        label.addEventListener('mouseover', function() {
+            const rating = this.getAttribute('for').replace('rating', '');
+            highlightStars(rating);
+        });
+
+        label.addEventListener('mouseout', function() {
+            const selectedRating = document.querySelector('input[name="rating"]:checked');
+            if (selectedRating) {
+                highlightStars(selectedRating.value);
+            } else {
+                resetStars();
+            }
+        });
+
+        label.addEventListener('click', function() {
+            const rating = this.getAttribute('for').replace('rating', '');
+            highlightStars(rating);
+        });
+    });
+
+    function highlightStars(rating) {
+        starLabels.forEach(label => {
+            const starRating = label.getAttribute('for').replace('rating', '');
+            if (starRating <= rating) {
+                label.querySelector('i').classList.add('active');
+            } else {
+                label.querySelector('i').classList.remove('active');
+            }
+        });
+    }
+
+    function resetStars() {
+        starLabels.forEach(label => {
+            label.querySelector('i').classList.remove('active');
+        });
+    }
+
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                rating: document.querySelector('input[name="rating"]:checked').value,
+                title: document.getElementById('reviewTitle').value,
+                comment: document.getElementById('reviewComment').value
+            };
+
+            fetch(`/api/reviews/product/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Review submitted successfully!');
+                    reviewForm.reset();
+                    resetStars();
+                    // Reload the page to show the new review
+                    window.location.reload();
+                } else {
+                    showToast(data.error || 'Failed to submit review', true);
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting review:', error);
+                showToast('Failed to submit review', true);
+            });
+        });
+    }
+
+    // Toast message helper
+    function showToast(message, isError = false) {
+        const toastContainer = document.createElement('div');
+        toastContainer.className = `toast-container position-fixed bottom-0 end-0 p-3`;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center ${isError ? 'text-bg-danger' : 'text-bg-success'}`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        document.body.appendChild(toastContainer);
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        
+        toast.addEventListener('hidden.bs.toast', () => {
+            document.body.removeChild(toastContainer);
+        });
+    }
+});
+    </script>
+
+<style>
+.rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.rating-input input {
+    display: none;
+}
+
+.rating-input label {
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 1.5rem;
+    color: #ddd;
+}
+
+.rating-input input:checked ~ label,
+.rating-input input:checked ~ label ~ label {
+    color: #ffc107;
+}
+
+.rating-input label:hover,
+.rating-input label:hover ~ label {
+    color: #ffc107;
+}
+
+.rating-input label i.active {
+    color: #ffc107;
+}
+
+.verified-badge {
+    color: #28a745;
+}
+
+.star-label {
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 1.5rem;
+    color: #ddd;
+}
+
+.star-label:hover,
+.star-label:hover ~ .star-label {
+    color: #ffc107;
+}
+
+.review-item {
+    border-bottom: 1px solid #eee;
+    padding: 20px 0;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.reviewer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.reviewer-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.review-rating {
+    display: flex;
+    gap: 2px;
+}
+
+.review-rating i {
+    font-size: 14px;
+}
+
+.text-warning {
+    color: #FFB800 !important;
+}
+
+.text-muted {
+    color: #D1D5DB !important;
+}
+
+.review-date {
+    font-size: 14px;
+    color: #6B7280;
+}
+
+.review-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.review-comment {
+    font-size: 14px;
+    color: #4B5563;
+    line-height: 1.6;
+    margin: 0;
+}
+</style>

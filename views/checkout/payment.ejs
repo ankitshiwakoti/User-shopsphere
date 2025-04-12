@@ -1,0 +1,107 @@
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Payment Information</h2>
+                    
+                    <form id="paymentForm" action="/checkout/payment" method="POST">
+                        <div class="mb-4">
+                            <h3 class="h5 mb-3">Contact Information</h3>
+                            <p class="mb-1"><%= contactInfo.firstName %> <%= contactInfo.lastName %></p>
+                            <p class="mb-1"><%= contactInfo.email %></p>
+                            <p class="mb-0"><%= contactInfo.phone %></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="h5 mb-3">Shipping Address</h3>
+                            <p class="mb-1"><%= shippingAddress.address %></p>
+                            <p class="mb-1"><%= shippingAddress.city %>, <%= shippingAddress.state %> <%= shippingAddress.zipCode %></p>
+                            <p class="mb-0"><%= shippingAddress.country %></p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h3 class="h5 mb-3">Payment Method</h3>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="creditCard" value="credit_card" required>
+                                <label class="form-check-label" for="creditCard">
+                                    Credit Card
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="paypal" value="paypal">
+                                <label class="form-check-label" for="paypal">
+                                    PayPal
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
+                                <label class="form-check-label" for="cod">
+                                    Cash on Delivery
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">Place Order</button>
+                            <a href="/checkout" class="btn btn-outline-secondary">Back to Contact Info</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Order Summary</h3>
+                    
+                    <% if (cart && cart.items && cart.items.length > 0) { %>
+                        <div class="cart-items mb-3">
+                            <% cart.items.forEach(item => { %>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="quantity"><%= item.quantity %>x</span>
+                                        <span class="product-name"><%= item.product.name %></span>
+                                    </div>
+                                    <span class="item-total">$<%= (item.product.price * item.quantity).toFixed(2) %></span>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal</span>
+                            <span class="subtotal">$<%= subtotal.toFixed(2) %></span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Total</strong>
+                            <strong class="total">$<%= total.toFixed(2) %></strong>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paymentForm');
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate payment method
+        const paymentMethod = form.querySelector('input[name="paymentMethod"]:checked');
+        if (!paymentMethod) {
+            alert('Please select a payment method');
+            return;
+        }
+        
+        form.submit();
+    });
+});
+</script> 

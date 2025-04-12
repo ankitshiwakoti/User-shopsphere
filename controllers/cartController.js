@@ -7,10 +7,37 @@ export const getCartPage = async (req, res) => {
         let cart;
         if (req.user) {
             // For logged-in users
-            cart = await Cart.findOne({ user: req.user._id }).populate('items');
+            cart = await Cart.findOne({ user: req.user._id })
+                .populate({
+                    path: 'items.product',
+                    select: 'name price images category'
+                });
+            
+            // Format the cart data
+            if (cart) {
+                cart.items = cart.items.map(item => ({
+                    ...item.toObject(),
+                    product: item.product.toObject()
+                }));
+            }
         } else {
             // For non-logged-in users, get cart from session
             cart = req.session.cart || { items: [] };
+            
+            // Format session cart data
+            if (cart.items && cart.items.length > 0) {
+                const products = await Product.find({
+                    _id: { $in: cart.items.map(item => item.product) }
+                }).select('name price images category');
+                
+                cart.items = cart.items.map(item => {
+                    const product = products.find(p => p._id.toString() === item.product.toString());
+                    return {
+                        ...item,
+                        product: product ? product.toObject() : null
+                    };
+                });
+            }
         }
             
         res.render('cart', { cart });

@@ -21,7 +21,9 @@
                                 <div class="cart-item mb-4 pb-4 border-bottom" data-id="<%= item.product._id %>">
                                     <div class="row align-items-center">
                                         <div class="col-md-2">
-                                            <img src="<%= item.product.images[0] %>" alt="<%= item.product.name %>" class="img-fluid rounded">
+                                            <img src="<%= item.product.images && item.product.images.length > 0 ? (item.product.images.find(img => img.isMain)?.url || item.product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                                                 alt="<%= item.product.name %>" 
+                                                 class="img-fluid rounded">
                                         </div>
                                         <div class="col-md-4">
                                             <h5 class="mb-1"><%= item.product.name %></h5>

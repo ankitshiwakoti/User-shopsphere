@@ -8,6 +8,8 @@ import expressLayouts from 'express-ejs-layouts';
 import connectDB from './config/database.js';
 import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
+import paymentRoutes from './routes/payment.js';
+import reviewRoutes from './routes/reviews.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +53,7 @@ app.use(async (req, res, next) => {
         success: req.flash('success'),
         error: req.flash('error')
     };
+    res.locals.currentPath = req.path;
 
     // Check for JWT token in cookies or Authorization header
     let token = null;
@@ -151,11 +154,14 @@ import ordersRouter from './routes/orders.js';
 import shopRouter from './routes/shop.js';
 import authRouter from './routes/authRoutes.js';
 import wishlistRouter from './routes/wishlistRoutes.js';
+import checkoutRouter from './routes/checkout.js';
 
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Web routes
 app.use('/', indexRouter);
@@ -165,6 +171,7 @@ app.use('/cart', cartRouter);
 app.use('/orders', ordersRouter);
 app.use('/shop', shopRouter);
 app.use('/wishlist', wishlistRouter);
+app.use('/checkout', checkoutRouter);
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -1,4 +1,6 @@
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
+import Review from '../models/Review.js';
 
 // Get all products with filters
 export const getProducts = async (req, res) => {
@@ -96,22 +98,48 @@ export const getProducts = async (req, res) => {
 // Get single product
 export const getProduct = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
+        // Get the product with populated reviews and user data
+        const product = await Product.findById(req.params.id)
+            .populate('category')
+            .populate({
+                path: 'reviews',
+                populate: {
+                    path: 'user',
+                    model: 'Customer',
+                    select: 'name email'
+                },
+                options: { sort: { createdAt: -1 } }
+            });
+
         if (!product) {
-            return res.status(404).render('error', {
-                message: 'Product not found',
-                error: {}
+            return res.status(404).render('product-details', { 
+                error: 'Product not found',
+                product: null
             });
         }
-        res.render('product-details', {
-            title: `${product.name} - ShopSphere`,
-            product
+
+        // Get related products
+        const relatedProducts = await Product.find({
+            category: product.category,
+            _id: { $ne: product._id }
+        }).limit(4);
+
+        // Log the reviews for debugging
+        console.log('Product reviews:', JSON.stringify(product.reviews, null, 2));
+
+        res.render('product-details', { 
+            product,
+            relatedProducts,
+            user: req.user,
+            locals: {
+                user: req.user
+            }
         });
     } catch (error) {
         console.error('Error fetching product:', error);
-        res.status(500).render('error', {
-            message: 'Error fetching product details',
-            error: process.env.NODE_ENV === 'development' ? error : {}
+        res.status(500).render('product-details', { 
+            error: 'Error fetching product details',
+            product: null
         });
     }
 };
