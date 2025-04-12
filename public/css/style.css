@@ -572,11 +572,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .product-info h3 {
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 500;
-    margin-bottom: 8px;
+   
     color: var(--text-color);
-    line-height: 1.4;
+    
     height: 40px;
     overflow: hidden;
     display: -webkit-box;
@@ -596,7 +596,7 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .new-price {
@@ -1621,12 +1621,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .product-card .btn-add {
     flex: 1;
-    padding: 8px 15px;
+    padding: 8px 16px;
     border: none;
     background: var(--primary-color);
     color: white;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1651,8 +1651,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .product-card .btn-wishlist:hover {
-    color: #ff4444;
-    border-color: #ff4444;
+    color: var(--bg-light);
+    border-color: var(--primary-color);
+    background-color: var(--primary-color, 0.1);
     transform: translateY(-2px);
 }
 
@@ -1868,7 +1869,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .product-rating {
-    font-size: 0.875rem;
+    
+    margin-bottom: 8px;
+    color: var(--warning);
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: 2px;
 }
 
 .rating-count {
@@ -2378,9 +2384,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.9rem;
 }
 
-.price {
-    margin-bottom: 1.5rem;
-}
+
 
 .new-price {
     font-size: 1.5rem;
@@ -2453,7 +2457,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-add-cart:hover {
-    background: var(--primary-dark);
+    background: var(--primary-dark) !important; 
 }
 
 .btn-wishlist {
