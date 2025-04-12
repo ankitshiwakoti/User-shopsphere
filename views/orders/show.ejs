@@ -1,0 +1,148 @@
+
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Order Details</h2>
+            
+            <% if (order) { %>
+                <!-- Order Summary -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Order #<%= order.orderNumber %></h5>
+                        <p class="text-muted">Placed on <%= new Date(order.createdAt).toLocaleDateString() %></p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Shipping Address</h6>
+                                <p>
+                                    <%= order.shippingAddress.street %><br>
+                                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.zipCode %><br>
+                                    <%= order.shippingAddress.country %>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Payment Method</h6>
+                                <p><%= order.paymentMethod %></p>
+                                <h6>Order Status</h6>
+                                <p><%= order.status %></p>
+                                <h6>Payment Status</h6>
+                                <p class="<%= order.paymentStatus === 'completed' ? 'text-success' : 'text-danger' %>">
+                                    <%= order.paymentStatus %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Order Items</h5>
+                        <% order.items.forEach(item => { %>
+                            <div class="row align-items-center mb-3">
+                                <div class="col-md-2">
+                                    <img src="<%= item.product.images && item.product.images.length > 0 ? (item.product.images.find(img => img.isMain)?.url || item.product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                                         alt="<%= item.product.name %>" 
+                                         class="img-fluid rounded">
+                                </div>
+                                <div class="col-md-4">
+                                    <h6><%= item.product.name %></h6>
+                                    <p class="text-muted mb-0">Quantity: <%= item.quantity %></p>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <p class="mb-0">$<%= item.price.toFixed(2) %> each</p>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <p class="mb-0">$<%= (item.price * item.quantity).toFixed(2) %></p>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+
+                <!-- Order Total -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Subtotal</h6>
+                                <h6>Tax</h6>
+                                <h6>Shipping</h6>
+                                <hr>
+                                <h5>Total</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <h6>$<%= order.subtotal.toFixed(2) %></h6>
+                                <h6>$<%= order.tax.toFixed(2) %></h6>
+                                <h6>$<%= order.shippingCost.toFixed(2) %></h6>
+                                <hr>
+                                <h5>$<%= order.total.toFixed(2) %></h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Retry Payment Section -->
+                <% if (order.paymentStatus !== 'completed' && order.status === 'pending') { %>
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Complete Payment</h5>
+                            <p class="text-danger">Your payment was not completed. Please try again to complete your order.</p>
+                            <div id="paypal-button-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- PayPal SDK -->
+                    <script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>&currency=USD"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            paypal.Buttons({
+                                createOrder: function(data, actions) {
+                                    return actions.order.create({
+                                        purchase_units: [{
+                                            amount: {
+                                                value: '<%= order.total.toFixed(2) %>',
+                                                currency_code: 'USD'
+                                            }
+                                        }]
+                                    });
+                                },
+                                onApprove: async function(data, actions) {
+                                    try {
+                                        const details = await actions.order.capture();
+                                        const response = await fetch('/api/payment/capture', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                orderId: '<%= order._id %>',
+                                                paypalOrderId: data.orderID,
+                                                paymentDetails: details
+                                            })
+                                        });
+
+                                        if (!response.ok) {
+                                            throw new Error('Failed to capture order');
+                                        }
+
+                                        // Reload the page to show updated status
+                                        window.location.reload();
+                                    } catch (error) {
+                                        console.error('Error:', error);
+                                        alert('Error processing payment. Please try again.');
+                                    }
+                                }
+                            }).render('#paypal-button-container');
+                        });
+                    </script>
+                <% } %>
+            <% } else { %>
+                <div class="alert alert-warning">
+                    Order not found.
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div> 

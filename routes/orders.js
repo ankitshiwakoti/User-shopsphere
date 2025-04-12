@@ -1,26 +1,46 @@
 import express from 'express';
 import { isAuthenticated } from '../middleware/auth.js';
+import Order from '../models/Order.js';
 
 const router = express.Router();
 
 // View all orders
-router.get('/', isAuthenticated, (req, res) => {
-    // Simplified version - normally would fetch from database
-    const orders = [];
-    res.render('orders/index', {
-        title: 'My Orders - ShopSphere',
-        orders
-    });
+router.get('/', isAuthenticated, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user._id })
+            .sort({ createdAt: -1 })
+            .populate('items.product');
+            
+        res.render('orders/index', {
+            title: 'My Orders - ShopSphere',
+            orders
+        });
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).render('error', { message: 'Error loading orders' });
+    }
 });
 
 // View single order
-router.get('/:orderId', isAuthenticated, (req, res) => {
-    // Simplified version - normally would fetch from database
-    const order = null;
-    res.render('orders/show', {
-        title: 'Order Details - ShopSphere',
-        order
-    });
+router.get('/:orderId', isAuthenticated, async (req, res) => {
+    try {
+        const order = await Order.findOne({
+            _id: req.params.orderId,
+            user: req.user._id
+        }).populate('items.product');
+
+        if (!order) {
+            return res.status(404).render('error', { message: 'Order not found' });
+        }
+
+        res.render('orders/show', {
+            title: 'Order Details - ShopSphere',
+            order
+        });
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        res.status(500).render('error', { message: 'Error loading order details' });
+    }
 });
 
 // Create new order

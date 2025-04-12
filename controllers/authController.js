@@ -1,7 +1,7 @@
 import authService from '../services/authService.js';
 import jwt from 'jsonwebtoken';
 import Customer from '../models/Customer.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import Cart from '../models/Cart.js';
 import Wishlist from '../models/Wishlist.js';
 

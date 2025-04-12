@@ -1,0 +1,41 @@
+<%- include('../layouts/main') %>
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Payment Details</h2>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Summary</h5>
+                    <div class="order-items">
+                        <% if (cart && cart.items && cart.items.length > 0) { %>
+                            <% cart.items.forEach(item => { %>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><%= item.product.name %> x <%= item.quantity %></span>
+                                    <span>$<%= (item.product.price * item.quantity).toFixed(2) %></span>
+                                </div>
+                            <% }); %>
+                        <% } %>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total Amount:</strong>
+                        <strong>$<%= cartTotal.toFixed(2) %></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payment Method</h5>
+                    <div id="paypal-button-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>&currency=USD"></script>
+<script src="/js/payment.js"></script> 
