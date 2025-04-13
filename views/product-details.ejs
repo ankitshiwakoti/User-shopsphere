@@ -253,19 +253,19 @@
 
                         <!-- Reviews List -->
                         <div id="reviewsList" class="mt-4">
-                            <% if (product.reviews && product.reviews.length > 0) { %>
+                            <% if (product.reviews && Array.isArray(product.reviews) && product.reviews.length > 0) { %>
                                 <% product.reviews.forEach(review => { %>
-                                    <div class="review-item">
+                                    <div class="review-item" data-review-id="<%= review._id %>">
                                         <div class="review-header">
                                             <div class="reviewer-info">
-                                                <h5 class="reviewer-name"><%= review.user ? review.user.email : 'Anonymous' %></h5>
+                                                <h5 class="reviewer-name"><%= review.user ? review.user.name || review.user.email : 'Anonymous' %></h5>
                                                 <div class="review-rating">
                                                     <% for(let i = 1; i <= 5; i++) { %>
                                                         <i class="fas fa-star <%= i <= review.rating ? 'text-warning' : 'text-muted' %>"></i>
                                                     <% } %>
                                                 </div>
                                             </div>
-                                            <span class="review-date"><%= new Date(review.createdAt).toLocaleDateString() %></span>
+                                            <span class="review-date"><%= review.createdAt %></span>
                                         </div>
                                         <div class="review-content">
                                             <h6 class="review-title"><%= review.title %></h6>
@@ -478,44 +478,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const productId = '<%= product._id %>';
     const reviewForm = document.getElementById('reviewForm');
 
-    // Handle star rating hover and click
-    const starLabels = document.querySelectorAll('.star-label');
-    starLabels.forEach(label => {
-        label.addEventListener('mouseover', function() {
-            const rating = this.getAttribute('for').replace('rating', '');
-            highlightStars(rating);
-        });
-
-        label.addEventListener('mouseout', function() {
-            const selectedRating = document.querySelector('input[name="rating"]:checked');
-            if (selectedRating) {
-                highlightStars(selectedRating.value);
-            } else {
-                resetStars();
+    function loadReviews() {
+        fetch(`/api/reviews/product/${productId}`, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
             }
-        });
-
-        label.addEventListener('click', function() {
-            const rating = this.getAttribute('for').replace('rating', '');
-            highlightStars(rating);
-        });
-    });
-
-    function highlightStars(rating) {
-        starLabels.forEach(label => {
-            const starRating = label.getAttribute('for').replace('rating', '');
-            if (starRating <= rating) {
-                label.querySelector('i').classList.add('active');
-            } else {
-                label.querySelector('i').classList.remove('active');
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.reviews) {
+                const reviewsList = document.getElementById('reviewsList');
+                if (data.reviews.length > 0) {
+                    reviewsList.innerHTML = data.reviews.map(review => `
+                        <div class="review-item" data-review-id="${review._id}">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <h5 class="reviewer-name">${review.user ? review.user.name || review.user.email : 'Anonymous'}</h5>
+                                    <div class="review-rating">
+                                        ${Array.from({length: 5}, (_, i) => `
+                                            <i class="fas fa-star ${i < review.rating ? 'text-warning' : 'text-muted'}"></i>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                <span class="review-date">${new Date(review.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <div class="review-content">
+                                <h6 class="review-title">${review.title}</h6>
+                                <p class="review-comment">${review.comment}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    reviewsList.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                        </div>
+                    `;
+                }
             }
-        });
-    }
-
-    function resetStars() {
-        starLabels.forEach(label => {
-            label.querySelector('i').classList.remove('active');
-        });
+        })
+        .catch(error => console.error('Error loading reviews:', error));
     }
 
     if (reviewForm) {
@@ -531,7 +536,10 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch(`/api/reviews/product/${productId}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
                 },
                 body: JSON.stringify(formData)
             })
@@ -540,9 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.success) {
                     showToast('Review submitted successfully!');
                     reviewForm.reset();
-                    resetStars();
-                    // Reload the page to show the new review
-                    window.location.reload();
+                    loadReviews(); // Reload reviews after submission
                 } else {
                     showToast(data.error || 'Failed to submit review', true);
                 }
@@ -554,36 +560,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Toast message helper
-    function showToast(message, isError = false) {
-        const toastContainer = document.createElement('div');
-        toastContainer.className = `toast-container position-fixed bottom-0 end-0 p-3`;
-        
-        const toast = document.createElement('div');
-        toast.className = `toast align-items-center ${isError ? 'text-bg-danger' : 'text-bg-success'}`;
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        document.body.appendChild(toastContainer);
-        
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-        
-        toast.addEventListener('hidden.bs.toast', () => {
-            document.body.removeChild(toastContainer);
-        });
-    }
+    // Load reviews initially
+    loadReviews();
 });
     </script>
 

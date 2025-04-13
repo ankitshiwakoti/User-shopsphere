@@ -99,16 +99,20 @@ export const getProducts = async (req, res) => {
 export const getProduct = async (req, res) => {
     try {
         // Get the product with populated reviews and user data
-        const product = await Product.findById(req.params.id)
+        let product = await Product.findById(req.params.id)
             .populate('category')
             .populate({
                 path: 'reviews',
+                model: 'Review',
                 populate: {
                     path: 'user',
                     model: 'Customer',
                     select: 'name email'
                 },
-                options: { sort: { createdAt: -1 } }
+                match: { user: { $ne: null } }, // Only include reviews with valid users
+                options: { 
+                    sort: { createdAt: -1 }
+                }
             });
 
         if (!product) {
@@ -118,14 +122,43 @@ export const getProduct = async (req, res) => {
             });
         }
 
+        // Filter out any null or undefined reviews and ensure they have valid user data
+        if (product.reviews) {
+            product.reviews = product.reviews.filter(review => 
+                review && 
+                review._id && 
+                review.user && 
+                review.user._id && 
+                review.rating && 
+                review.createdAt
+            );
+            
+            // Update the product in the database to remove invalid reviews
+            await Product.findByIdAndUpdate(product._id, { 
+                reviews: product.reviews.map(review => review._id),
+                averageRating: product.reviews.length > 0 
+                    ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length 
+                    : 0
+            });
+        }
+
         // Get related products
         const relatedProducts = await Product.find({
             category: product.category,
             _id: { $ne: product._id }
         }).limit(4);
 
-        // Log the reviews for debugging
-        console.log('Product reviews:', JSON.stringify(product.reviews, null, 2));
+        // Format dates and ensure all review data is valid
+        if (product.reviews) {
+            product.reviews = product.reviews.map(review => ({
+                ...review.toObject(),
+                createdAt: review.createdAt.toLocaleDateString(),
+                user: {
+                    name: review.user.name || review.user.email,
+                    email: review.user.email
+                }
+            }));
+        }
 
         res.render('product-details', { 
             product,
