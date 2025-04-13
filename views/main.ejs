@@ -1,0 +1,68 @@
+<style>
+    /* User Actions Dropdown Styles */
+    .user-actions .dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 1000;
+        min-width: 200px;
+        padding: 0.5rem 0;
+        margin: 0;
+        background-color: #fff;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-actions .dropdown-menu::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+    }
+
+    .user-actions .dropdown-item {
+        padding: 0.5rem 1rem;
+        color: #333;
+        text-decoration: none;
+        display: block;
+        clear: both;
+        font-weight: 400;
+        text-align: inherit;
+        white-space: nowrap;
+        background-color: transparent;
+        border: 0;
+    }
+
+    .user-actions .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #16181b;
+    }
+
+    .user-actions .dropdown-divider {
+        height: 0;
+        margin: 0.5rem 0;
+        overflow: hidden;
+        border-top: 1px solid #e9ecef;
+    }
+
+    /* Ensure the dropdown is visible */
+    .user-actions {
+        position: relative;
+    }
+
+    /* Fix for dropdown positioning */
+    .user-actions .dropdown {
+        position: static;
+    }
+
+    .user-actions .dropdown-menu {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        z-index: 1000;
+    }
+</style> 

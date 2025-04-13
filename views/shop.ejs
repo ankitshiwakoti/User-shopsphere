@@ -2,8 +2,8 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+            <li class="breadcrumb-item"><a href="/" style="color: var(--color-primary);">Home</a></li>
+            <li class="breadcrumb-item"><a href="/shop" style="color: var(--color-primary);">Shop</a></li>
             <% if (activeCategory) { %>
                 <li class="breadcrumb-item active"><%= activeCategory.name %></li>
             <% } %>
@@ -132,6 +132,7 @@
 
                 <!-- Product Status -->
                 <div class="card mb-4">
+                    
                     <div class="card-body">
                         <h5 class="card-title">Product Status</h5>
                         <div class="status-filters">
@@ -202,12 +203,21 @@
                                         <div class="product-image">
                                             <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
                                                  alt="<%= product.name %>">
-                                            <div class="badge-overlay">
-                                                <span class="badge bg-danger">-15%</span>
-                                            </div>
+                                            <% if (product.stock <= 0) { %>
+                                                <div class="out-of-stock-overlay">
+                                                    <span>Out of Stock</span>
+                                                </div>
+                                            <% } %>
                                         </div>
                                         <div class="product-info">
                                             <h3><%= product.name %></h3>
+                                            <div class="product-rating mb-2">
+                                                <% const rating = product.averageRating || 0; %>
+                                                <% for(let i = 1; i <= 5; i++) { %>
+                                                    <i class="fas fa-star <%= i <= rating ? 'text-warning' : 'text-muted' %>"></i>
+                                                <% } %>
+                                                <span class="text-muted ms-1">(<%= product.reviews ? product.reviews.length : 0 %>)</span>
+                                            </div>
                                             <div class="price">
                                                 <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
                                                 <span class="old-price">$<%= product.price.toFixed(2) %></span>
@@ -235,8 +245,9 @@
                             <div class="no-products-message">
                                 <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
                                 <h3>No Products Available</h3>
-                                <p class="text-muted">We couldn't find any products matching your criteria.</p>
-                                <p class="text-muted">Please check back later or try adjusting your filters.</p>
+                                <p class="text-muted">We couldn't find any products matching your criteria. Please check back later or try adjusting your filters.</p>
+                                <a href="/shop" style="text-decoration: underline; color: var(--primary-color); hover: var(--secondary-color);">Shop All Products</a>
+                               
                             </div>
                         </div>
                     <% } %>
@@ -268,9 +279,9 @@
                 </div>
 
                 <!-- No More Products Message (Hidden by default) -->
-                <div id="no-more-products" class="text-center my-4 d-none">
+                <!-- <div id="no-more-products" class="text-center my-4 d-none">
                     <p class="text-muted">No more products to load</p>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
@@ -378,7 +389,7 @@
 .slider-track {
     position: absolute;
     height: 100%;
-    background: #4CAF50;
+    background: var(--primary-color);
     border-radius: 5px;
     pointer-events: none;
 }
@@ -398,7 +409,7 @@
     -webkit-appearance: none;
     width: 20px;
     height: 20px;
-    background: #4CAF50;
+    background: var(--primary-color);
     border-radius: 50%;
     cursor: pointer;
     pointer-events: auto;
