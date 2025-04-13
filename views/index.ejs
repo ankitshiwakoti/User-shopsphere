@@ -119,30 +119,31 @@
             <% if (newArrivals && newArrivals.length > 0) { %>
                 <% newArrivals.forEach(product => { %>
                     <div class="col-6 col-md-3 col-lg-2-4">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" alt="<%= product.name %>">
+                        <a href="/shop/product/<%= product._id %>" class="product-link">
+                            <div class="product-card">
+                                <div class="product-image">
+                                    <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" alt="<%= product.name %>">
+                                </div>
+                                <div class="product-info">
+                                    <h3><%= product.name %></h3>
+                                    <div class="product-rating">
+                                        <% const rating = product.averageRating || 0; %>
+                                        <% for(let i = 1; i <= 5; i++) { %>
+                                            <i class="fas fa-star <%= i <= rating ? 'active' : '' %>"></i>
+                                        <% } %>
+                                        <span style="color: var(--text-muted);">(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
+                                    </div>
+                                    <div class="price">
+                                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
+                                        <span class="old-price">$<%= (product.price * 1.15).toFixed(2) %></span>
+                                    </div>
+                                    <div class="button-group">
+                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
+                                        <button class="btn btn-primary">Add to cart</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="product-info">
-                                <h3><%= product.name %></h3>
-                                <div class="price">
-                                    <span class="new-price">$<%= product.price.toFixed(2) %></span>
-                                    <span class="old-price">$<%= (product.price * 1.15).toFixed(2) %></span>
-                                </div>
-                                <div class="product-rating">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
-                                    <span>(4.5)</span>
-                                </div>
-                                <div class="button-group">
-                                    <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                    <button class="btn-add">Add to cart</button>
-                                </div>
-                            </div>
-                        </div>
+                        </a>
                     </div>
                 <% }); %>
             <% } else { %>
@@ -158,177 +159,87 @@
         <div class="row mt-4">
             <div class="col-12">
                 <!-- Promotional Cards -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="promo-card">
-                    
-                    <h5>Only This Week</h5>
-                    <h3>Quality eggs at an affordable price</h3>
-                    <p>Eat one every day</p>
-                    <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
-                    <img src="/images/promos/banner1.jpg" alt="Quality Eggs" class="promo-bg">
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="promo-card">
+                        
+                        <h5>Only This Week</h5>
+                        <h3>Quality eggs at an affordable price</h3>
+                        <p>Eat one every day</p>
+                        <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
+                        <img src="/images/promos/banner1.jpg" alt="Quality Eggs" class="promo-bg">
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="promo-card">
+                        <h5>Only This Week</h5>
+                        <h3>Snacks that nourish our mind</h3>
+                        <p>Shine the morning...</p>
+                        <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
+                        <img src="/images/promos/banner-02.jpg" alt="Healthy Snacks" class="promo-bg">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="promo-card">
+                        <h5>Only This Week</h5>
+                        <h3>Unbeatable quality and prices.</h3>
+                        <p>Only this week. Don't miss...</p>
+                        <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
+                        <img src="/images/promos/banner-08.jpg" alt="Quality Products" class="promo-bg">
+                    </div>
                 </div>
             </div>
-            
-            <div class="col-md-4">
-                <div class="promo-card">
-                    <h5>Only This Week</h5>
-                    <h3>Snacks that nourish our mind</h3>
-                    <p>Shine the morning...</p>
-                    <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
-                    <img src="/images/promos/banner-02.jpg" alt="Healthy Snacks" class="promo-bg">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="promo-card">
-                    <h5>Only This Week</h5>
-                    <h3>Unbeatable quality and prices.</h3>
-                    <p>Only this week. Don't miss...</p>
-                    <a href="#" class="btn-shop">Shop Now <i class="fas fa-arrow-right"></i></a>
-                    <img src="/images/promos/banner-08.jpg" alt="Quality Products" class="promo-bg">
-                </div>
-            </div>
+        </div>
         </div>
 
                    
      
                 <!-- Best Sellers -->
-                <div class="best-sellers mt-4">
+                <div class="row mt-4"">
                     <div class="section-header d-flex justify-content-between align-items-center">
                         <h2>Best Sellers</h2>
-                        <a href="#" class="view-all">See All <i class="fas fa-arrow-right"></i></a>
+                        <a href="/shop" class="view-all">See All <i class="fas fa-arrow-right"></i></a>
                     </div>
-                    <div class="row">
-                        <div class="col-6 col-md-4 col-lg-2.4">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Philadelphia">
+                </div>
+                    <div class="row g-4 mt-2">
+                        <% if (bestSellers && bestSellers.length > 0) { %>
+                            <% bestSellers.forEach(product => { %>
+                                <div class="col-6 col-md-3 col-lg-2-4">
+                                    <a href="/shop/product/<%= product._id %>" class="product-link">
+                                        <div class="product-card">
+                                            <div class="product-image">
+                                                <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" alt="<%= product.name %>">
+                                            </div>
+                                            <div class="product-info">
+                                                <h3><%= product.name %></h3>
+                                                <div class="product-rating">
+                                                    <% const rating = product.averageRating || 0; %>
+                                                    <% for(let i = 1; i <= 5; i++) { %>
+                                                        <i class="fas fa-star <%= i <= rating ? 'active' : '' %>"></i>
+                                                    <% } %>
+                                                    <span style="color: var(--text-muted);">(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
+                                                </div>
+                                                <div class="price">
+                                                    <span class="new-price">$<%= product.price.toFixed(2) %></span>
+                                                    <span class="old-price">$<%= (product.price * 1.15).toFixed(2) %></span>
+                                                </div>
+                                                <div class="button-group">
+                                                    <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
+                                                    <button class="btn-add">Add to cart</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
                                 </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Original Cream</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.99</span>
-                                    </div>
-                                    <div class="product-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star-half-alt"></i>
-                                        <span>(4.5)</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2.4">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Philadelphia">
-                                </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Original Cream</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.99</span>
-                                    </div>
-                                    <div class="product-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star-half-alt"></i>
-                                        <span>(4.5)</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    No best sellers available at the moment. Please check back later.
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2.4">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Philadelphia">
-                                </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Original Cream</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.99</span>
-                                    </div>
-                                    <div class="product-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star-half-alt"></i>
-                                        <span>(4.5)</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2.4">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Philadelphia">
-                                </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Original Cream</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.99</span>
-                                    </div>
-                                    <div class="product-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star-half-alt"></i>
-                                        <span>(4.5)</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-4 col-lg-2.4">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="/images/products/creamspread.png" alt="Philadelphia">
-                                </div>
-                                <div class="product-info">
-                                    <h3>Philadelphia Original Cream</h3>
-                                    <div class="price">
-                                        <span class="new-price">$5.49</span>
-                                        <span class="old-price">$6.99</span>
-                                    </div>
-                                    <div class="product-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star-half-alt"></i>
-                                        <span>(4.5)</span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>

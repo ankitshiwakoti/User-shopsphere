@@ -96,6 +96,21 @@ orderSchema.pre('save', async function(next) {
     next();
 });
 
+// Update product sales counts when order is completed
+orderSchema.post('save', async function(doc) {
+    if (doc.status === 'completed') {
+        const Product = mongoose.model('Product');
+        
+        // Update sales count for each product in the order
+        for (const item of doc.items) {
+            await Product.findByIdAndUpdate(
+                item.product,
+                { $inc: { salesCount: item.quantity } }
+            );
+        }
+    }
+});
+
 const Order = mongoose.model('Order', orderSchema);
 
 export default Order; 
