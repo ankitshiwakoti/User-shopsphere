@@ -27,10 +27,10 @@ export const addReview = async (req, res) => {
         const review = new Review({
             product: productId,
             user: userId,
-            rating,
+            rating: parseInt(rating),
             title,
             comment,
-            verifiedPurchase: false
+            createdAt: new Date()
         });
 
         await review.save();
@@ -38,18 +38,34 @@ export const addReview = async (req, res) => {
 
         // Update product's reviews and average rating
         const product = await Product.findById(productId);
+        if (!product.reviews) {
+            product.reviews = [];
+        }
         product.reviews.push(review._id);
         
         const reviews = await Review.find({ product: productId });
-        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-        product.averageRating = totalRating / reviews.length;
+        product.averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
         
         await product.save();
         console.log('Product updated with new review:', product);
 
+        // Return the newly created review with user data
+        const populatedReview = await Review.findById(review._id)
+            .populate('user', 'name email');
+
         res.json({
             success: true,
-            review
+            review: {
+                _id: populatedReview._id,
+                rating: populatedReview.rating,
+                title: populatedReview.title,
+                comment: populatedReview.comment,
+                createdAt: populatedReview.createdAt,
+                user: {
+                    name: populatedReview.user.name || populatedReview.user.email,
+                    email: populatedReview.user.email
+                }
+            }
         });
     } catch (error) {
         console.error('Error adding review:', error);
@@ -68,16 +84,29 @@ export const getProductReviews = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const reviews = await Review.find({ product: productId })
-            .populate('user', 'name')
+            .populate('user', 'name email')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
 
         const total = await Review.countDocuments({ product: productId });
 
+        // Format the reviews for response
+        const formattedReviews = reviews.map(review => ({
+            _id: review._id,
+            rating: review.rating,
+            title: review.title,
+            comment: review.comment,
+            createdAt: review.createdAt,
+            user: {
+                name: review.user.name || review.user.email,
+                email: review.user.email
+            }
+        }));
+
         res.json({
             success: true,
-            reviews,
+            reviews: formattedReviews,
             pagination: {
                 total,
                 page,
@@ -87,6 +116,7 @@ export const getProductReviews = async (req, res) => {
     } catch (error) {
         console.error('Error getting reviews:', error);
         res.status(500).json({
+            success: false,
             error: 'Failed to get reviews'
         });
     }
