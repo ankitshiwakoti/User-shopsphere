@@ -1,44 +1,86 @@
-
-
 <div class="container py-5">
-    <div class="row">
-        <div class="col-md-8">
-            <h2>Order Details</h2>
-            
-            <% if (order) { %>
-                <!-- Order Summary -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Order #<%= order.orderNumber %></h5>
-                        <p class="text-muted">Placed on <%= new Date(order.createdAt).toLocaleDateString() %></p>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Shipping Address</h6>
-                                <p>
-                                    <%= order.shippingAddress.street %><br>
-                                    <%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.zipCode %><br>
-                                    <%= order.shippingAddress.country %>
-                                </p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Payment Method</h6>
-                                <p><%= order.paymentMethod %></p>
-                                <h6>Order Status</h6>
-                                <p><%= order.status %></p>
-                                <h6>Payment Status</h6>
-                                <p class="<%= order.paymentStatus === 'completed' ? 'text-success' : 'text-danger' %>">
-                                    <%= order.paymentStatus %>
-                                </p>
+    <div class="checkout-progress mb-5">
+        <div class="progress-step completed">
+            <div class="step-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="step-label">Contact Info</span>
+        </div>
+        <div class="progress-step completed">
+            <div class="step-icon">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <span class="step-label">Payment</span>
+        </div>
+        <div class="progress-step active">
+            <div class="step-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <span class="step-label">Review</span>
+        </div>
+    </div>
+
+    <div class="row g-4 ">
+        <!-- Left Side: Order Details -->
+        <div class="col-lg-8">
+            <!-- Order Details Container -->
+            <div class="checkout-card mb-4 p-2">
+                <div class="card-body p-4">
+                    <div class="section-header mb-4">
+                        <h2 class="card-title mb-2">Order Details</h2>
+                        <p class="text-muted">Order #<%= order.orderNumber %></p>
+                    </div>
+
+                     <!-- Shipping Address -->
+                     <div class="shipping-info">
+                        <h3 class="section-subtitle mb-3">Shipping Address</h3>
+                        <div class="summary-card p-3">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-map-marker-alt me-2" style="color: var(--color-primary);"></i>
+                                
+                                    <p class="mb-1"><%= order.shippingAddress.street %></p>
+                                    <p class="mb-1"><%= order.shippingAddress.city %>, <%= order.shippingAddress.state %> <%= order.shippingAddress.zipCode %></p>
+                                    <p class="mb-0"><%= order.shippingAddress.country %></p>
+                                
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Order Items -->
-                <div class="card mb-4">
+                    <!-- Order Status -->
+                    <div class="order-status mb-4">
+                        <h3 class="section-subtitle mb-3">Order Status</h3>
+                        <div class="summary-card p-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-circle me-2" style="color: <%= order.status === 'completed' ? 'var(--color-success)' : 'var(--color-warning)' %>"></i>
+                                <span><%= order.status.charAt(0).toUpperCase() + order.status.slice(1) %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="payment-info mb-4">
+                        <h3 class="section-subtitle mb-3">Payment Information</h3>
+                        <div class="summary-card p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-credit-card me-2" style="color: var(--color-primary);"></i>
+                                <span>Payment Method: <%= order.paymentMethod %></span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-circle me-2" style="color: <%= order.paymentStatus === 'completed' ? 'var(--color-success)' : 'var(--color-warning)' %>"></i>
+                                <span>Payment Status: <%= order.paymentStatus %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                   
+                </div>
+            </div>
+
+            <!-- Order Items Container -->
+                
+                <div class="card mb-4 p-2">
                     <div class="card-body">
-                        <h5 class="card-title">Order Items</h5>
+                        <h4 class="card-title mb-4">Order Items</h4>
                         <% order.items.forEach(item => { %>
                             <div class="row align-items-center mb-3">
                                 <div class="col-md-2">
@@ -61,88 +103,92 @@
                     </div>
                 </div>
 
-                <!-- Order Total -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Subtotal</h6>
-                                <h6>Tax</h6>
-                                <h6>Shipping</h6>
-                                <hr>
-                                <h5>Total</h5>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <h6>$<%= order.subtotal.toFixed(2) %></h6>
-                                <h6>$<%= order.tax.toFixed(2) %></h6>
-                                <h6>$<%= order.shippingCost.toFixed(2) %></h6>
-                                <hr>
-                                <h5>$<%= order.total.toFixed(2) %></h5>
-                            </div>
+        </div>
+
+        <!-- Right Side: Order Summary and Payment -->
+        <div class="col-lg-4">
+            <!-- Order Summary Container -->
+            <div class="checkout-card mb-4">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-2">Order Summary</h4>
+                    
+                    <div class="summary-card p-3 mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal</span>
+                            <span>$<%= order.subtotal.toFixed(2) %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Shipping</span>
+                            <span>$<%= order.shippingCost.toFixed(2) %></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tax</span>
+                            <span>$<%= order.tax.toFixed(2) %></span>
+                        </div>
+                        <div class="d-flex justify-content-between total-row">
+                            <strong>Total</strong>
+                            <strong class="total-amount">$<%= order.total.toFixed(2) %></strong>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Retry Payment Section -->
-                <% if (order.paymentStatus !== 'completed' && order.status === 'pending') { %>
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Complete Payment</h5>
-                            <p class="text-danger">Your payment was not completed. Please try again to complete your order.</p>
+            <!-- Complete Payment Container -->
+            <% if (order.paymentStatus !== 'completed' && order.status === 'pending') { %>
+                <div class="checkout-card">
+                    <div class="card-body p-4">
+                        <h4 class="card-title mb-2">Complete Payment</h4>
+                        <div class="summary-card p-3">
+                            <p class="text-danger mb-3">Your payment was not completed. Please try again to complete your order.</p>
                             <div id="paypal-button-container"></div>
                         </div>
-                    </div>
 
-                    <!-- PayPal SDK -->
-                    <script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>&currency=USD"></script>
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            paypal.Buttons({
-                                createOrder: function(data, actions) {
-                                    return actions.order.create({
-                                        purchase_units: [{
-                                            amount: {
-                                                value: '<%= order.total.toFixed(2) %>',
-                                                currency_code: 'USD'
-                                            }
-                                        }]
-                                    });
-                                },
-                                onApprove: async function(data, actions) {
-                                    try {
-                                        const details = await actions.order.capture();
-                                        const response = await fetch('/api/payment/capture', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                                orderId: '<%= order._id %>',
-                                                paypalOrderId: data.orderID,
-                                                paymentDetails: details
-                                            })
+                        <!-- PayPal SDK -->
+                        <script src="https://www.paypal.com/sdk/js?client-id=<%= process.env.PAYPAL_CLIENT_ID %>&currency=USD"></script>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                paypal.Buttons({
+                                    createOrder: function(data, actions) {
+                                        return actions.order.create({
+                                            purchase_units: [{
+                                                amount: {
+                                                    value: '<%= order.total.toFixed(2) %>',
+                                                    currency_code: 'USD'
+                                                }
+                                            }]
                                         });
+                                    },
+                                    onApprove: async function(data, actions) {
+                                        try {
+                                            const details = await actions.order.capture();
+                                            const response = await fetch('/api/payment/capture', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({
+                                                    orderId: '<%= order._id %>',
+                                                    paypalOrderId: data.orderID,
+                                                    paymentDetails: details
+                                                })
+                                            });
 
-                                        if (!response.ok) {
-                                            throw new Error('Failed to capture order');
+                                            if (!response.ok) {
+                                                throw new Error('Failed to capture order');
+                                            }
+
+                                            window.location.reload();
+                                        } catch (error) {
+                                            console.error('Error:', error);
+                                            alert('Error processing payment. Please try again.');
                                         }
-
-                                        // Reload the page to show updated status
-                                        window.location.reload();
-                                    } catch (error) {
-                                        console.error('Error:', error);
-                                        alert('Error processing payment. Please try again.');
                                     }
-                                }
-                            }).render('#paypal-button-container');
-                        });
-                    </script>
-                <% } %>
-            <% } else { %>
-                <div class="alert alert-warning">
-                    Order not found.
+                                }).render('#paypal-button-container');
+                            });
+                        </script>
+                    </div>
                 </div>
             <% } %>
         </div>
     </div>
-</div> 
+</div>

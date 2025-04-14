@@ -1,91 +1,130 @@
 <!-- Register Page -->
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">Create Account</h2>
-                    
+<div class="container-fluid py-12">
+    <!-- Row for centering the form vertically and horizontally -->
+    <div class="row justify-content-center align-items-center g-0" style="min-height: calc(100vh - 100px);">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            <!-- Authentication Card -->
+            <div class="auth-card shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <!-- Form Title -->
+                    <div class="text-center mb-4">
+                        <h2 class="auth-title mb-2">Create your account</h2>
+                        <p class="text-muted">Join ShopSphere today and start shopping!</p>
+                    </div>
+
                     <!-- Flash Messages -->
                     <% if (messages && messages.error_msg && messages.error_msg.length > 0) { %>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                             <%= messages.error_msg %>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <% } %>
                     
                     <% if (messages && messages.success_msg && messages.success_msg.length > 0) { %>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                             <%= messages.success_msg %>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <% } %>
-                    
+
                     <!-- Register Form -->
                     <form id="registerForm" class="needs-validation" novalidate>
                         <div class="mb-3">
                             <label for="fullName" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="fullName" name="fullName" required>
+                            <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Enter your full name" required>
                             <div class="invalid-feedback">
                                 Please enter your name.
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email" required>
-                            <div class="invalid-feedback">
+                        
+
+                        <!-- Email Field -->
+                        <div class="mb-4">
+                            <label for="email" class="auth-form-label mb-2">Email</label>
+                            <input 
+                                type="email" 
+                                class="auth-form-input form-control form-control-lg" 
+                                id="email" 
+                                name="email" 
+                                placeholder="Enter your email"
+                                required
+                            >
+                            <div class="invalid-feedback mt-2">
                                 Please enter a valid email address.
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label for="password" class="auth-form-label mb-2">Password</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       minlength="6" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="far fa-eye"></i>
+                                <input 
+                                    type="password" 
+                                    class="auth-form-input form-control form-control-lg" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Create a password"
+                                    required
+                                >
+                                <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" type="button" id="togglePassword" style="width: 45px;">
+                                    <i class="far fa-eye" style="font-size: 1rem;"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">
-                                Password must be at least 6 characters long.
+                            <div class="invalid-feedback mt-2">
+                                Please enter a password.
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                        <!-- Confirm Password Field -->
+                        <div class="mb-4">
+                            <label for="confirmPassword" class="auth-form-label mb-2">Confirm Password</label>
                             <div class="input-group">
-                                <input type="password" class="form-control" id="confirmPassword" 
-                                       name="confirmPassword" required>
-                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                                    <i class="far fa-eye"></i>
+                                <input 
+                                    type="password" 
+                                    class="auth-form-input form-control form-control-lg" 
+                                    id="confirmPassword" 
+                                    name="confirmPassword" 
+                                    placeholder="Confirm your password"
+                                    required
+                                >
+                                <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" type="button" id="toggleConfirmPassword" style="width: 45px;">
+                                    <i class="far fa-eye" style="font-size: 1rem;"></i>
                                 </button>
                             </div>
-                            <div class="invalid-feedback">
-                                Passwords do not match.
+                            <div class="invalid-feedback mt-2">
+                                Please confirm your password.
                             </div>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
-                            <label class="form-check-label" for="terms">
-                                I agree to the <a href="/terms" class="text-decoration-none">Terms of Service</a> and 
-                                <a href="/privacy" class="text-decoration-none">Privacy Policy</a>
-                            </label>
-                            <div class="invalid-feedback">
-                                You must agree to the terms and conditions.
+                        <!-- Terms and Conditions -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label auth-remember-label" for="terms">
+                                    I agree to the <a href="/terms" class="auth-link text-decoration-none">Terms and Conditions</a>
+                                </label>
+                                <div class="invalid-feedback mt-2">
+                                    You must agree to the terms and conditions.
+                                </div>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Sign Up</button>
+                        <!-- Submit Button -->
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="auth-button btn btn-lg">
+                                Create Account
+                            </button>
+                        </div>
+
+                        <!-- Login Link -->
+                        <div class="text-center mt-2 pt-3">
+                            <p class="auth-text mb-0">
+                                Already have an account? 
+                                <a href="/users/login" class="auth-link text-decoration-none">Sign in</a>
+                            </p>
                         </div>
                     </form>
-
-                    <div class="text-center mt-4">
-                        <p class="mb-0">Already have an account? <a href="/users/login" class="text-decoration-none">Sign in</a></p>
-                    </div>
                 </div>
             </div>
         </div>
@@ -103,6 +142,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!form.checkValidity()) {
             event.stopPropagation();
             form.classList.add('was-validated');
+            return;
+        }
+
+        // Check if passwords match
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        if (password !== confirmPassword) {
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            confirmPasswordInput.setCustomValidity("Passwords don't match");
+            confirmPasswordInput.reportValidity();
             return;
         }
 
@@ -126,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitButton = form.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.innerHTML;
             submitButton.disabled = true;
-            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Signing up...';
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Creating account...';
 
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
@@ -151,10 +201,10 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             form.insertBefore(alertDiv, form.firstChild);
 
-            // Redirect to login after 2 seconds
+            // Redirect to login page after successful registration
             setTimeout(() => {
                 window.location.href = '/users/login';
-            }, 2000);
+            }, 1500);
 
         } catch (error) {
             // Show error message
@@ -169,28 +219,24 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset button state
             const submitButton = form.querySelector('button[type="submit"]');
             submitButton.disabled = false;
-            submitButton.innerHTML = 'Sign Up';
+            submitButton.innerHTML = 'Create Account';
         }
     });
 
-    // Password visibility toggle
+    // Password visibility toggle for both password fields
     const togglePassword = document.getElementById('togglePassword');
     const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
 
-    togglePassword.addEventListener('click', function() {
-        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-        password.setAttribute('type', type);
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
-    });
+    function togglePasswordVisibility(input, button) {
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        button.querySelector('i').classList.toggle('fa-eye');
+        button.querySelector('i').classList.toggle('fa-eye-slash');
+    }
 
-    toggleConfirmPassword.addEventListener('click', function() {
-        const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-        confirmPassword.setAttribute('type', type);
-        this.querySelector('i').classList.toggle('fa-eye');
-        this.querySelector('i').classList.toggle('fa-eye-slash');
-    });
+    togglePassword.addEventListener('click', () => togglePasswordVisibility(password, togglePassword));
+    toggleConfirmPassword.addEventListener('click', () => togglePasswordVisibility(confirmPassword, toggleConfirmPassword));
 });
 </script> 
