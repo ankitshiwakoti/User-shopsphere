@@ -156,6 +156,7 @@ import authRouter from './routes/authRoutes.js';
 import wishlistRouter from './routes/wishlistRoutes.js';
 import checkoutRouter from './routes/checkout.js';
 
+
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/cart', cartRouter);
@@ -172,6 +173,7 @@ app.use('/orders', ordersRouter);
 app.use('/shop', shopRouter);
 app.use('/wishlist', wishlistRouter);
 app.use('/checkout', checkoutRouter);
+
 
 // Error handler
 app.use((err, req, res, next) => {
