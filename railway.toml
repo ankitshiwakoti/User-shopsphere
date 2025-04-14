@@ -1,0 +1,17 @@
+[build]
+builder = "nixpacks"
+buildCommand = "npm install"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+[deploy.env]
+NODE_ENV = "production"
+PORT = "3000"
+MONGODB_URI = "{{RAILWAY_MONGODB_URI}}"
+JWT_SECRET = "{{RAILWAY_JWT_SECRET}}"
+SESSION_SECRET = "{{RAILWAY_SESSION_SECRET}}" 

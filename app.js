@@ -165,11 +165,11 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // Web routes
+app.use('/orders', ordersRouter);
 app.use('/', indexRouter);
 app.use('/products', productsRouter);
 app.use('/users', usersRouter);
 app.use('/cart', cartRouter);
-app.use('/orders', ordersRouter);
 app.use('/shop', shopRouter);
 app.use('/wishlist', wishlistRouter);
 app.use('/checkout', checkoutRouter);

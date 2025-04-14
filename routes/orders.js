@@ -1,6 +1,7 @@
 import express from 'express';
 import { isAuthenticated } from '../middleware/auth.js';
 import Order from '../models/Order.js';
+import { generateInvoice } from '../controllers/orderController.js';
 
 const router = express.Router();
 
@@ -51,5 +52,8 @@ router.post('/', isAuthenticated, (req, res) => {
         message: 'Order created successfully'
     });
 });
+
+// Generate invoice for an order
+router.get('/:orderId/invoice', isAuthenticated, generateInvoice);
 
 export default router; 

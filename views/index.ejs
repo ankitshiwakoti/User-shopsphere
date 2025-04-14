@@ -119,31 +119,43 @@
             <% if (newArrivals && newArrivals.length > 0) { %>
                 <% newArrivals.forEach(product => { %>
                     <div class="col-6 col-md-3 col-lg-2-4">
-                        <a href="/shop/product/<%= product._id %>" class="product-link">
-                            <div class="product-card">
-                                <div class="product-image">
-                                    <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" alt="<%= product.name %>">
-                                </div>
-                                <div class="product-info">
-                                    <h3><%= product.name %></h3>
-                                    <div class="product-rating">
+                        <div class="product-card">
+                            <div class="product-image">
+                                <img src="<%= product.images && product.images.length > 0 ? product.images[0].url : '/images/placeholder.jpg' %>" 
+                                     alt="<%= product.name %>">
+                                <% if (product.isNew) { %>
+                                    <span class="product-badge">New</span>
+                                <% } %>
+                                <% if (product.discount > 0) { %>
+                                    <span class="discount-badge">-<%= product.discount %>%</span>
+                                <% } %>
+                            </div>
+                            <div class="product-info">
+                                <h3><%= product.name %></h3>
+                                <div class="product-rating">
+                                    <div class="stars">
                                         <% const rating = product.averageRating || 0; %>
                                         <% for(let i = 1; i <= 5; i++) { %>
                                             <i class="fas fa-star <%= i <= rating ? 'active' : '' %>"></i>
                                         <% } %>
-                                        <span style="color: var(--text-muted);">(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
                                     </div>
-                                    <div class="price">
-                                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
-                                        <span class="old-price">$<%= (product.price * 1.15).toFixed(2) %></span>
-                                    </div>
-                                    <div class="button-group">
-                                        <button class="btn-wishlist"><i class="fas fa-heart"></i></button>
-                                        <button class="btn-add">Add to cart</button>
-                                    </div>
+                                    <span>(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
+                                </div>
+                                <div class="price">
+                                    <span class="new-price">$<%= product.price.toFixed(2) %></span>
+                                    <span class="old-price">$<%= (product.price * 1.15).toFixed(2) %></span>
+                                </div>
+                                <div class="button-group">
+                                    <button class="btn-add">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        Add to cart
+                                    </button>
+                                    <button class="btn-wishlist">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 <% }); %>
             <% } else { %>
@@ -333,6 +345,307 @@
 
 .subcategory-list .category-item a {
     font-size: 0.9rem;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    /* Hero Section */
+    .hero-banner {
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .hero-banner h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-banner h5 {
+        font-size: 1rem;
+    }
+
+    .hero-banner p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-banner .hero-image {
+        width: 100%;
+        height: auto;
+        margin-top: 1rem;
+    }
+
+    /* Feature Cards */
+    .row .col-3 {
+        width: 50%;
+        padding: 0.5rem;
+    }
+
+    .feature-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .feature-card h4 {
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+
+    .feature-card p {
+        font-size: 0.8rem;
+        margin-bottom: 0;
+    }
+
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Product Grid */
+    .col-6.col-md-3.col-lg-2-4 {
+        width: 100%;
+        padding: 0.75rem;
+    }
+
+    .product-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .product-image {
+        width: 100%;
+        position: relative;
+        height: 200px;
+        background: #f8f9fa;
+    }
+
+    .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    .product-info {
+        padding: 1rem;
+    }
+
+    .product-info h3 {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0 0 0.5rem 0;
+        color: #2d3436;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .product-rating i {
+        font-size: 0.9rem;
+        color: #ffc107;
+    }
+
+    .product-rating i.active {
+        color: #ffc107;
+    }
+
+    .product-rating span {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .price {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .new-price {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .old-price {
+        font-size: 0.9rem;
+        color: #999;
+        text-decoration: line-through;
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .btn-add {
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-add i {
+        font-size: 1.1rem;
+    }
+
+    .btn-wishlist {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: #f8f9fa;
+        border: 1px solid #eee;
+        color: #666;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-wishlist:hover,
+    .btn-wishlist.active {
+        color: #ff4757;
+        background: #ffe7e7;
+        border-color: #ffcdd2;
+    }
+
+    /* Product badge styles */
+    .product-badge {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: #ff4757;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Discount badge */
+    .discount-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: #2ecc71;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Section title adjustments */
+    .section-header {
+        padding: 0 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3436;
+        margin-bottom: 0.5rem;
+    }
+
+    .view-all {
+        color: var(--color-primary);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .view-all i {
+        font-size: 0.9rem;
+    }
+
+    /* Promotional Cards */
+    .promo-card {
+        margin-bottom: 1rem;
+        height: 200px;
+        padding: 1rem;
+    }
+
+    .col-md-4 {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .promo-card h3 {
+        font-size: 1.2rem;
+    }
+
+    .promo-card h5 {
+        font-size: 0.9rem;
+    }
+
+    .promo-card p {
+        font-size: 0.8rem;
+    }
+
+    .promo-card .btn-shop {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Health & Safety Banner */
+    .health-safety-banner {
+        padding: 1.5rem 0;
+        margin-bottom: 4rem; /* Add space for mobile bottom navigation */
+    }
+
+    .health-safety-banner h4 {
+        font-size: 1.1rem;
+    }
+
+    .health-safety-banner p {
+        font-size: 0.9rem;
+    }
+
+    /* General Spacing */
+    .mt-4 {
+        margin-top: 2rem !important;
+    }
+
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Hide categories sidebar on mobile */
+    .categories-sidebar {
+        display: none;
+    }
+
+    /* Adjust hero banner to full width */
+    .col-lg-9 {
+        width: 100%;
+        padding: 0;
+    }
 }
 </style>
 
