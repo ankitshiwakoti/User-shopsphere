@@ -13,12 +13,18 @@ export const getProducts = async (req, res) => {
             onSale,
             inStock,
             organic,
+            search,
             page = 1,
             limit = 12
         } = req.query;
 
         // Build filter object
-        const filter = {};
+        const filter = { status: 'published' };
+
+        // Add text search if search query exists
+        if (search) {
+            filter.$text = { $search: search };
+        }
 
         if (category) {
             filter.category = category;
@@ -44,21 +50,26 @@ export const getProducts = async (req, res) => {
 
         // Build sort object
         let sortObj = {};
-        switch (sort) {
-            case 'price_asc':
-                sortObj = { price: 1 };
-                break;
-            case 'price_desc':
-                sortObj = { price: -1 };
-                break;
-            case 'name_asc':
-                sortObj = { name: 1 };
-                break;
-            case 'name_desc':
-                sortObj = { name: -1 };
-                break;
-            default:
-                sortObj = { createdAt: -1 }; // Default sort by newest
+        if (search) {
+            // If searching, sort by text score first
+            sortObj = { score: { $meta: 'textScore' } };
+        } else {
+            switch (sort) {
+                case 'price_asc':
+                    sortObj = { price: 1 };
+                    break;
+                case 'price_desc':
+                    sortObj = { price: -1 };
+                    break;
+                case 'name_asc':
+                    sortObj = { name: 1 };
+                    break;
+                case 'name_desc':
+                    sortObj = { name: -1 };
+                    break;
+                default:
+                    sortObj = { createdAt: -1 }; // Default sort by newest
+            }
         }
 
         // Calculate pagination
@@ -69,16 +80,23 @@ export const getProducts = async (req, res) => {
         const totalPages = Math.ceil(total / limit);
 
         // Get products
-        const products = await Product.find(filter)
+        let productsQuery = Product.find(filter);
+        
+        if (search) {
+            productsQuery = productsQuery.select({ score: { $meta: 'textScore' } });
+        }
+
+        const products = await productsQuery
             .sort(sortObj)
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .populate('category');
 
         // Get all categories for sidebar
         const categories = await Product.distinct('category');
 
         res.render('products/index', {
-            title: 'All Products - ShopSphere',
+            title: search ? `Search Results for "${search}" - ShopSphere` : 'All Products - ShopSphere',
             products,
             categories,
             currentPage: page,
@@ -309,6 +327,183 @@ export const getProductDetails = async (req, res) => {
             product: null,
             relatedProducts: [],
             error: 'Error fetching product details. Please try again later.'
+        });
+    }
+};
+
+// Search products
+export const searchProducts = async (req, res) => {
+    // Only accept AJAX requests
+    if (!req.xhr && !req.headers.accept?.includes('application/json')) {
+        return res.status(400).json({
+            success: false,
+            error: 'Invalid request type'
+        });
+    }
+
+    try {
+        const { q } = req.query;
+        
+        if (!q) {
+            return res.status(400).json({
+                success: false,
+                error: 'Search query is required'
+            });
+        }
+
+        // Create search pipeline
+        const searchPipeline = [
+            {
+                $search: {
+                    index: "default",
+                    compound: {
+                        should: [
+                            {
+                                // Search in product name with highest priority
+                                text: {
+                                    query: q,
+                                    path: "name",
+                                    score: { boost: { value: 5 } },
+                                    fuzzy: { maxEdits: 1 }
+                                }
+                            },
+                            {
+                                // Search in description
+                                text: {
+                                    query: q,
+                                    path: "description",
+                                    score: { boost: { value: 3 } },
+                                    fuzzy: { maxEdits: 2 }
+                                }
+                            },
+                            {
+                                // Search in short description
+                                text: {
+                                    query: q,
+                                    path: "shortDescription",
+                                    score: { boost: { value: 4 } },
+                                    fuzzy: { maxEdits: 2 }
+                                }
+                            }
+                        ],
+                        minimumShouldMatch: 1
+                    }
+                }
+            },
+            {
+                $match: {
+                    status: 'published'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$category',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $facet: {
+                    // Main search results
+                    searchResults: [
+                        { $limit: 20 }
+                    ],
+                    // Category suggestions
+                    categoryMatches: [
+                        {
+                            $group: {
+                                _id: '$category._id',
+                                category: { $first: '$category.name' },
+                                count: { $sum: 1 }
+                            }
+                        },
+                        { $limit: 5 }
+                    ],
+                    // Related products (products in the same categories as search results)
+                    relatedProducts: [
+                        {
+                            $group: {
+                                _id: '$category._id',
+                                categoryId: { $first: '$category._id' }
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'products',
+                                let: { categoryId: '$categoryId' },
+                                pipeline: [
+                                    {
+                                        $match: {
+                                            $expr: { $eq: ['$category', '$$categoryId'] },
+                                            status: 'published'
+                                        }
+                                    },
+                                    { $limit: 4 }
+                                ],
+                                as: 'related'
+                            }
+                        },
+                        { $unwind: '$related' },
+                        { $replaceRoot: { newRoot: '$related' } },
+                        { $limit: 8 }
+                    ]
+                }
+            }
+        ];
+
+        const [results] = await Product.aggregate(searchPipeline);
+
+        // Format the response
+        const formattedResults = {
+            success: true,
+            products: results.searchResults.map(product => ({
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.images && product.images.length > 0 
+                    ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url)
+                    : null,
+                category: product.category?.name || '',
+                averageRating: product.averageRating || 0,
+                url: `/products/${product._id}`,
+                shortDescription: product.shortDescription
+            })),
+            categories: results.categoryMatches.map(cat => ({
+                id: cat._id,
+                name: cat.category,
+                count: cat.count,
+                url: `/shop?category=${cat._id}`
+            })),
+            relatedProducts: results.relatedProducts.map(product => ({
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                image: product.images && product.images.length > 0 
+                    ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url)
+                    : null,
+                category: product.category?.name || '',
+                url: `/products/${product._id}`
+            }))
+        };
+
+        // Send JSON response
+        res.setHeader('Content-Type', 'application/json');
+        return res.json(formattedResults);
+    } catch (error) {
+        console.error('Error searching products:', error);
+        // Send JSON error response
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({
+            success: false,
+            error: 'Error searching products',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 }; 

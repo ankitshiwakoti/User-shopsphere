@@ -13,6 +13,210 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .announcement-bar {
+                display: none;
+            }
+            
+            .main-header {
+                padding: 0.5rem 0 !important;
+            }
+
+            /* Logo styles for mobile */
+            .logo-text {
+                display: none;
+            }
+            
+            .logo-icon {
+                margin-right: 0 !important;
+            }
+            
+            .navbar-brand {
+                padding: 0;
+            }
+
+            /* Search bar styles for mobile */
+            .search-bar {
+                margin: 0.5rem 0;
+            }
+
+            .search-bar .input-group {
+                position: relative;
+            }
+
+            .search-bar .form-control {
+                border-radius: 20px !important;
+                padding-right: 15px;
+                font-size: 14px;
+                height: 40px;
+            }
+
+            .search-bar .btn {
+                display: none; /* Hide search button on mobile */
+            }
+
+            /* Adjust header layout for mobile */
+            .main-header .row {
+                gap: 0.5rem;
+            }
+
+            .main-header .col {
+                padding: 0 10px;
+            }
+
+            .main-header .col-auto {
+                padding: 0 10px;
+            }
+
+            .user-actions {
+                display: none;
+            }
+            
+            .navbar-categories {
+                display: none !important;
+            }
+            
+            .navbar-nav {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+                padding: 8px;
+                gap: 10px;
+                margin: 0;
+                width: 100%;
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE and Edge */
+            }
+
+            .navbar-nav::-webkit-scrollbar {
+                display: none; /* Chrome, Safari, Opera */
+            }
+
+            .nav-item {
+                display: inline-block;
+                margin: 0;
+                padding: 0;
+            }
+
+            .nav-link {
+                white-space: nowrap;
+                padding: 6px 12px !important;
+                font-size: 14px;
+            }
+
+            .trending-products {
+                display: none;
+            }
+
+            /* Hide desktop navigation on mobile */
+            .navbar {
+                display: none !important;
+            }
+
+            /* Enhanced Mobile Bottom Navigation */
+            .mobile-bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                padding: 0.5rem 0;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+            }
+
+            .mobile-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: #333;
+                text-decoration: none;
+                font-size: 0.8rem;
+                position: relative;
+                padding: 4px 8px;
+                flex: 1;
+                text-align: center;
+            }
+
+            .mobile-nav-item.active {
+                color: var(--color-primary);
+            }
+
+            .mobile-nav-item i {
+                font-size: 1.4rem;
+                margin-bottom: 4px;
+            }
+
+            .mobile-nav-item .badge {
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                font-size: 0.7rem;
+                padding: 0.25rem 0.4rem;
+            }
+
+            .mobile-nav-item span:not(.badge) {
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+            /* Add padding to main content to prevent overlap with bottom nav */
+            .content-wrapper {
+                padding-bottom: 80px;
+            }
+
+            /* Hide all category-related elements */
+            #categoriesMenu,
+            .categories-dropdown,
+            .categories-menu,
+            [data-bs-target="#categoriesMenu"],
+            .categories-list,
+            .category-item,
+            .categories-section,
+            .categories-container,
+            div[class*="category"],
+            .category-wrapper {
+                display: none !important;
+            }
+
+            /* Hide any elements with category in their class name */
+            [class*="category"] {
+                display: none !important;
+            }
+
+            /* Ensure no margin/padding is taken by hidden elements */
+            .categories-section,
+            .categories-container,
+            .category-wrapper {
+                margin: 0 !important;
+                padding: 0 !important;
+                height: 0 !important;
+            }
+
+            /* Adjust spacing for removed categories */
+            .main-header {
+                padding: 0.5rem 0 !important;
+            }
+
+            .content-wrapper {
+                padding-top: 0;
+            }
+        }
+
+        /* Desktop Styles */
+        @media (min-width: 769px) {
+            .mobile-bottom-nav {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="main-wrapper">
@@ -31,7 +235,7 @@
                             <div class="d-flex gap-4">
                                 
                               
-                                <a href="/order-tracking" style="color: white;">Order Tracking</a>
+                                <a href="/orders" style="color: white;">Order Tracking</a>
                             </div>
                         </div>
                     </div>
@@ -63,7 +267,7 @@
                         <div class="d-flex gap-4">
                             
                           
-                            <a href="/order-tracking">Order Tracking</a>
+                            <a href="/orders">Order Tracking</a>
                         </div>
                     </div>
                 </div>
@@ -88,12 +292,18 @@
                         <!-- Search Bar -->
                         <div class="col">
                             <div class="search-bar">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Search for products, categories or brands...">
-                                    <button class="btn btn-primary" type="button">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
+                                <form action="/shop" method="GET" class="search-form">
+                                    <div class="input-group">
+                                        <input type="search" 
+                                               name="search" 
+                                               class="form-control" 
+                                               placeholder="Search products..." 
+                                               autocomplete="off">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
 
@@ -150,7 +360,7 @@
 
             <!-- Navigation -->
             <nav class="navbar navbar-expand-lg navbar-light bg-white border-top border-bottom">
-                <div class="container">
+                <div class="container d-flex">
                     <!-- Categories Menu -->
                     <div class="navbar-categories">
                         <button class="btn btn-light d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#categoriesMenu">
@@ -162,16 +372,14 @@
                     <!-- Main Menu -->
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link " href="/" data-nav-link>Home</a>
+                            <a class="nav-link" href="/" data-nav-link>Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/shop" data-nav-link>Shop</a>
                         </li>
-
                         <li class="nav-item">
                             <a class="nav-link" href="/about" data-nav-link>About Us</a>
                         </li>
-                       
                         <li class="nav-item">
                             <a class="nav-link" href="/contact" data-nav-link>Contact Us</a>
                         </li>
@@ -196,6 +404,32 @@
         <main class="content-wrapper mt-3">
             <%- body %>
         </main>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="mobile-bottom-nav">
+            <a href="/" class="mobile-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/shop" class="mobile-nav-item">
+                <i class="fas fa-store"></i>
+                <span>Shop</span>
+            </a>
+            <a href="/wishlist" class="mobile-nav-item">
+                <i class="fas fa-heart"></i>
+                <span class="badge bg-danger rounded-pill"><%= locals.wishlistCount || 0 %></span>
+                <span>Wishlist</span>
+            </a>
+            <a href="/cart" class="mobile-nav-item">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="badge bg-danger rounded-pill"><%= locals.cartCount || 0 %></span>
+                <span>Cart</span>
+            </a>
+            <a href="/account" class="mobile-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </a>
+        </div>
 
         <!-- Footer -->
         <footer class="footer bg-white">
@@ -295,7 +529,7 @@
                                 <div class="d-flex justify-content-lg-end gap-3">
                                     <a href="/terms" class="text-body">Terms and Conditions</a>
                                     <a href="/privacy" class="text-body">Privacy Policy</a>
-                                    <a href="/order-tracking" class="text-body">Order Tracking</a>
+                                    <a href="/orders" class="text-body">Order Tracking</a>
                                 </div>
                             </div>
                         </div>
@@ -309,6 +543,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="/js/main.js"></script>
+    <script src="/js/search.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize all Bootstrap dropdowns
@@ -434,6 +669,67 @@
                 }
             });
         }
+    });
+    </script>
+    <script>
+        // Add horizontal scroll to navbar on mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbar = document.querySelector('.navbar-nav');
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            if (navbar) {
+                navbar.addEventListener('mousedown', (e) => {
+                    isDown = true;
+                    startX = e.pageX - navbar.offsetLeft;
+                    scrollLeft = navbar.scrollLeft;
+                });
+
+                navbar.addEventListener('mouseleave', () => {
+                    isDown = false;
+                });
+
+                navbar.addEventListener('mouseup', () => {
+                    isDown = false;
+                });
+
+                navbar.addEventListener('mousemove', (e) => {
+                    if (!isDown) return;
+                    e.preventDefault();
+                    const x = e.pageX - navbar.offsetLeft;
+                    const walk = (x - startX);
+                    navbar.scrollLeft = scrollLeft - walk;
+                });
+            }
+        });
+    </script>
+    <script>
+    // Add this to your existing scripts section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle mobile search form submission
+        const searchForm = document.querySelector('.search-form');
+        const searchInput = searchForm.querySelector('input[type="search"]');
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchForm.submit();
+            }
+        });
+    });
+    </script>
+    <script>
+    // Add this to your existing scripts section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add active class to current mobile nav item
+        const currentPath = window.location.pathname;
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+        mobileNavItems.forEach(item => {
+            if (item.getAttribute('href') === currentPath) {
+                item.classList.add('active');
+            }
+        });
     });
     </script>
 </body>

@@ -111,6 +111,26 @@ productSchema.index({ 'attributes.size': 1 });
 productSchema.index({ featured: 1 });
 productSchema.index({ salesCount: -1 });
 
+// Add text indexes for search
+productSchema.index({ 
+    name: 'text', 
+    description: 'text', 
+    shortDescription: 'text',
+    category: 'text',
+    'attributes.color': 'text',
+    'attributes.size': 'text'
+}, {
+    weights: {
+        name: 10,
+        category: 8,
+        shortDescription: 5,
+        description: 3,
+        'attributes.color': 2,
+        'attributes.size': 2
+    },
+    name: 'product_search_index'
+});
+
 // Update the updatedAt field before saving
 productSchema.pre('save', function(next) {
     this.updatedAt = Date.now();

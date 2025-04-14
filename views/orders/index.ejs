@@ -1,0 +1,150 @@
+<!-- Order Tracking Page -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Order Tracking</h2>
+            
+            <!-- Order Search -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form action="/orders/search" method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="orderNumber" placeholder="Order Number">
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary w-100">Search Orders</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            <div class="orders-list">
+                <% if (orders && orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                        <div class="card mb-3 order-card">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h5 class="card-title mb-1">#<%= order.orderNumber %></h5>
+                                        <small class="text-muted">
+                                            <%= new Date(order.createdAt).toLocaleDateString() %>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="order-status">
+                                            <span class="status-badge status-<%= order.orderStatus.toLowerCase() %>">
+                                                <%= order.orderStatus %>
+                                            </span>
+                                        </div>
+                                        <small class="d-block mt-1">
+                                            <%= order.items.length %> items
+                                        </small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="order-total">
+                                            <strong>$<%= order.total.toFixed(2) %></strong>
+                                        </div>
+                                        <small class="text-muted">
+                                            <%= order.paymentStatus %>
+                                        </small>
+                                    </div>
+                                    <div class="col-md-3 text-end">
+                                        <a href="/orders/<%= order._id %>" class="btn btn-outline-primary btn-sm">
+                                            View Details
+                                        </a>
+                                        <a href="/orders/<%= order._id %>/invoice" class="btn btn-outline-secondary btn-sm ms-2">
+                                            <i class="fas fa-file-pdf"></i> Invoice
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } else { %>
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h4>No Orders Found</h4>
+                        <p class="text-muted">You haven't placed any orders yet.</p>
+                        <a href="/shop" class="btn btn-primary">Start Shopping</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.order-card {
+    transition: transform 0.2s;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-shipped {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-delivered {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.order-total {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .order-card .row > div {
+        margin-bottom: 0.5rem;
+    }
+    
+    .order-card .text-end {
+        text-align: left !important;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+}
+</style>
+
+ 

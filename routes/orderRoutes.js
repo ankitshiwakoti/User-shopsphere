@@ -1,24 +1,24 @@
 import express from 'express';
-import { isAuthenticated, isAdmin } from '../middleware/auth.js';
+import { isAuthenticated } from '../middleware/auth.js';
 import {
     createOrder,
-    getOrderHistory,
     getOrderDetails,
-    updateOrderStatus
+    updateOrderStatus,
+    getOrders,
+    searchOrders,
+    generateInvoice
 } from '../controllers/orderController.js';
 
 const router = express.Router();
 
-// Create a new order
-router.post('/', isAuthenticated, createOrder);
+// Order tracking routes
+router.get('/', isAuthenticated, getOrders);
+router.get('/search', isAuthenticated, searchOrders);
+router.get('/:id', isAuthenticated, getOrderDetails);
+router.get('/:id/invoice', isAuthenticated, generateInvoice);
 
-// Get user's order history
-router.get('/history', isAuthenticated, getOrderHistory);
-
-// Get order details
-router.get('/:orderId', isAuthenticated, getOrderDetails);
-
-// Update order status (admin only)
-router.put('/:orderId/status', isAdmin, updateOrderStatus);
+// Order management routes
+router.post('/create', isAuthenticated, createOrder);
+router.patch('/:id/status', isAuthenticated, updateOrderStatus);
 
 export default router; 
