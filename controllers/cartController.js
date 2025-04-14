@@ -138,11 +138,20 @@ export const addToCart = async (req, res) => {
                     req.session.cart.items[existingItemIndex].quantity = product.stock;
                 }
                 
-                return res.json({ 
-                    success: true, 
-                    message: 'Product quantity updated in cart',
-                    cartCount: req.session.cart.items.length 
+                // Save session explicitly
+                req.session.save(err => {
+                    if (err) {
+                        console.error('Error saving session:', err);
+                        return res.status(500).json({ success: false, message: 'Error saving cart' });
+                    }
+                    
+                    return res.json({ 
+                        success: true, 
+                        message: 'Product quantity updated in cart',
+                        cartCount: req.session.cart.items.length 
+                    });
                 });
+                return;
             }
 
             // Add new product to cart
@@ -154,10 +163,18 @@ export const addToCart = async (req, res) => {
                 image: product.images && product.images.length > 0 ? product.images[0].url : null
             });
             
-            res.json({ 
-                success: true, 
-                message: 'Product added to cart', 
-                cartCount: req.session.cart.items.length 
+            // Save session explicitly
+            req.session.save(err => {
+                if (err) {
+                    console.error('Error saving session:', err);
+                    return res.status(500).json({ success: false, message: 'Error saving cart' });
+                }
+                
+                res.json({ 
+                    success: true, 
+                    message: 'Product added to cart', 
+                    cartCount: req.session.cart.items.length 
+                });
             });
         }
     } catch (error) {

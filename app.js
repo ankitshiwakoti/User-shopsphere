@@ -41,8 +41,17 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: process.env.NODE_ENV === 'production' }
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    proxy: true // Trust the reverse proxy
 }));
+
+// Trust proxy (important for Railway)
+app.set('trust proxy', 1);
 
 // Flash messages
 app.use(flash());
