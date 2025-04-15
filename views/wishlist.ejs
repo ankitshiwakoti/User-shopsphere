@@ -3,29 +3,47 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h2 class="card-title mb-4">My Wishlist</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="card-title mb-0">My Wishlist</h2>
+                        <span class="badge bg-primary rounded-pill"><%= wishlist && wishlist.items ? wishlist.items.length : 0 %> items</span>
+                    </div>
                     
                     <% if (wishlist && wishlist.items && wishlist.items.length > 0) { %>
-                        <div class="row">
+                        <div class="row g-4">
                             <% wishlist.items.forEach(item => { %>
-                                <div class="col-md-4 col-lg-3 mb-4">
-                                    <div class="card h-100">
-                                        <img src="<%= item.images[0] %>" class="card-img-top" alt="<%= item.name %>">
-                                        <div class="card-body">
-                                            <h5 class="card-title"><%= item.name %></h5>
-                                            <p class="card-text text-muted">
-                                                <small>Category: <%= item.category.name %></small>
-                                            </p>
-                                            <p class="card-text">
+                                <div class="col-md-4 col-lg-3">
+                                    <div class="card h-100 product-card">
+                                        <div class="product-image" style="height: 200px; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #f8f9fa;">
+                                            <img src="<%= item.images && item.images.length > 0 ? (item.images.find(img => img.isMain)?.url || item.images[0]?.url) : '/images/products/default-product.jpg' %>" 
+                                                 class="card-img-top" 
+                                                 alt="<%= item.name %>"
+                                                 style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            <% if (item.stock <= 0) { %>
+                                                <div class="out-of-stock-overlay">
+                                                    <span>Out of Stock</span>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="card-body d-flex flex-column">
+                                            <h5 class="card-title" title="<%= item.name %>"><%= item.name %></h5>
+                                           
+                                            <p class="card-text mb-3">
                                                 <strong>$<%= item.price.toFixed(2) %></strong>
                                             </p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <button class="btn btn-sm btn-outline-primary add-to-cart" data-id="<%= item._id %>">
-                                                    Add to Cart
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger remove-from-wishlist" data-id="<%= item._id %>">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                            <div class="mt-auto">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <button class="btn btn-sm btn-primary add-to-cart" 
+                                                            data-id="<%= item._id %>"
+                                                            <%= item.stock <= 0 ? 'disabled' : '' %>>
+                                                        <i class="fas fa-shopping-cart me-1"></i>
+                                                        Add to Cart
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger remove-from-wishlist" 
+                                                            data-id="<%= item._id %>"
+                                                            title="Remove from wishlist">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -37,7 +55,10 @@
                             <i class="fas fa-heart fa-3x text-muted mb-3"></i>
                             <h4>Your wishlist is empty</h4>
                             <p class="text-muted">Looks like you haven't added any items to your wishlist yet.</p>
-                            <a href="/shop" class="btn btn-primary mt-3">Browse Products</a>
+                            <a href="/shop" class="btn btn-primary mt-3">
+                                <i class="fas fa-shopping-bag me-2"></i>
+                                Browse Products
+                            </a>
                         </div>
                     <% } %>
                 </div>
@@ -45,6 +66,50 @@
         </div>
     </div>
 </div>
+
+<style>
+.product-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.out-of-stock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+}
+
+.product-image {
+    position: relative;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+}
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -74,18 +139,40 @@ document.addEventListener('DOMContentLoaded', function() {
         return options;
     }
 
+    // Show toast notification
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast align-items-center text-white bg-${type} border-0 position-fixed bottom-0 end-0 p-3`;
+        toast.style.zIndex = '5';
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+        setTimeout(() => toast.remove(), 3000);
+    }
+
     // Add to cart buttons
     const addToCartButtons = document.querySelectorAll('.add-to-cart');
     addToCartButtons.forEach(button => {
         button.addEventListener('click', function() {
             const productId = this.dataset.id;
+            const button = this;
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
             
             fetch('/api/cart/add', getFetchOptions('POST', { productId, quantity: 1 }))
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Show success message
-                        alert('Product added to cart!');
+                        showToast('Product added to cart!');
                         
                         // Update cart count in header
                         const cartCountElement = document.querySelector('.cart-count');
@@ -93,12 +180,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             cartCountElement.textContent = data.cartCount;
                         }
                     } else {
-                        alert(data.message || 'Error adding to cart');
+                        showToast(data.message || 'Error adding to cart', 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error adding to cart');
+                    showToast('Error adding to cart', 'danger');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-shopping-cart me-1"></i> Add to Cart';
                 });
         });
     });
@@ -108,26 +199,39 @@ document.addEventListener('DOMContentLoaded', function() {
     removeButtons.forEach(button => {
         button.addEventListener('click', function() {
             const productId = this.dataset.id;
+            const button = this;
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
             
             fetch(`/api/wishlist/remove/${productId}`, getFetchOptions('DELETE'))
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        showToast('Product removed from wishlist');
+                        
                         // Remove the product card from the wishlist
                         const productCard = this.closest('.col-md-4');
-                        productCard.remove();
-                        
-                        // If wishlist is empty, reload page to show empty message
-                        if (document.querySelectorAll('.col-md-4').length === 0) {
-                            location.reload();
-                        }
+                        productCard.style.opacity = '0';
+                        setTimeout(() => {
+                            productCard.remove();
+                            
+                            // If wishlist is empty, reload page to show empty message
+                            if (document.querySelectorAll('.col-md-4').length === 0) {
+                                location.reload();
+                            }
+                        }, 300);
                     } else {
-                        alert(data.message || 'Error removing from wishlist');
+                        showToast(data.message || 'Error removing from wishlist', 'danger');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('Error removing from wishlist');
+                    showToast('Error removing from wishlist', 'danger');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-trash"></i>';
                 });
         });
     });

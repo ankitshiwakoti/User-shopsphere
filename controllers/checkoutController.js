@@ -1,6 +1,7 @@
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
+import mongoose from 'mongoose';
 
 // Get checkout page
 export const getCheckoutPage = async (req, res) => {
@@ -179,22 +180,48 @@ export const processPayment = async (req, res) => {
             paymentStatus: 'pending'
         });
 
-        await order.save();
+        // Start a session for transaction
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-        // Clear cart
-        if (req.user) {
-            await Cart.findOneAndUpdate(
-                { user: req.user._id },
-                { $set: { items: [] } }
-            );
-        } else {
-            req.session.cart = { items: [] };
+        try {
+            // Save the order
+            await order.save({ session });
+
+            // Update stock for each product
+            for (const item of cart.items) {
+                await Product.findByIdAndUpdate(
+                    item.product._id,
+                    { $inc: { stock: -item.quantity } },
+                    { session }
+                );
+            }
+
+            // Commit the transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            // Clear cart
+            if (req.user) {
+                await Cart.findOneAndUpdate(
+                    { user: req.user._id },
+                    { $set: { items: [] } }
+                );
+            } else {
+                req.session.cart = { items: [] };
+            }
+
+            // Clear checkout data from session
+            delete req.session.checkoutData;
+
+            res.redirect(`/orders/${order._id}`);
+        } catch (error) {
+            // If there's an error, abort the transaction
+            await session.abortTransaction();
+            session.endSession();
+            console.error('Error in processPayment:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
         }
-
-        // Clear checkout data from session
-        delete req.session.checkoutData;
-
-        res.redirect(`/orders/${order._id}`);
     } catch (error) {
         console.error('Error in processPayment:', error);
         res.status(500).json({ success: false, message: 'Server error' });
