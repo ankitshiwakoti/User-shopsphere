@@ -1,0 +1,246 @@
+<!-- Profile Page -->
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-4">
+                        <% if (user.avatar) { %>
+                            <img src="<%= user.avatar %>" alt="Profile Picture" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                        <% } else { %>
+                            <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 150px; height: 150px; font-size: 3rem; margin: 0 auto;">
+                                <%= user.name.charAt(0).toUpperCase() %>
+                            </div>
+                        <% } %>
+                        <button class="btn btn-sm btn-outline-primary mt-3" id="changeAvatarBtn">
+                            <i class="fas fa-camera me-2"></i>Change Picture
+                        </button>
+                    </div>
+                    <h4 class="mb-1"><%= user.name %></h4>
+                    <p class="text-muted mb-4"><%= user.email %></p>
+                    <div class="d-flex justify-content-center mb-2">
+                        <button class="btn btn-primary me-2" id="editProfileBtn">Edit Profile</button>
+                        <button class="btn btn-outline-danger" id="changePasswordBtn">Change Password</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Navigation -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="/users/profile">
+                            <i class="fas fa-user me-2"></i>Profile Information
+                        </a>
+                        <a class="nav-link" href="/orders">
+                            <i class="fas fa-shopping-bag me-2"></i>My Orders
+                        </a>
+                        <a class="nav-link" href="/users/addresses">
+                            <i class="fas fa-map-marker-alt me-2"></i>My Addresses
+                        </a>
+                        <a class="nav-link" href="/wishlist">
+                            <i class="fas fa-heart me-2"></i>Wishlist
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="col-lg-8">
+            <!-- Profile Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm" class="needs-validation" novalidate>
+                        <!-- Full Name -->
+                        <div class="mb-4">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
+                            <div class="invalid-feedback">
+                                Please enter your full name.
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-4">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="<%= user.phone || '' %>" pattern="[0-9]{10}">
+                            <div class="invalid-feedback">
+                                Please enter a valid 10-digit phone number.
+                            </div>
+                        </div>
+
+                        <!-- Gender -->
+                        <div class="mb-4">
+                            <label class="form-label">Gender</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male" <%= user.gender === 'male' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="male">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female" value="female" <%= user.gender === 'female' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="female">Female</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="other" value="other" <%= user.gender === 'other' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="other">Other</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-4">
+                            <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '' %>">
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Orders</h5>
+                    <a href="/orders" class="btn btn-link">View All</a>
+                </div>
+                <div class="card-body">
+                    <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% orders.slice(0, 5).forEach(order => { %>
+                                        <tr>
+                                            <td>#<%= order._id.toString().slice(-6) %></td>
+                                            <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                            <td><span class="badge bg-<%= order.status === 'delivered' ? 'success' : 'warning' %>"><%= order.status %></span></td>
+                                            <td>$<%= order.total.toFixed(2) %></td>
+                                            <td>
+                                                <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">View</a>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-4">
+                            <img src="/images/no-orders.svg" alt="No Orders" style="width: 120px; opacity: 0.5;" class="mb-3">
+                            <h6 class="text-muted">No orders found</h6>
+                            <a href="/" class="btn btn-primary mt-3">Start Shopping</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.getElementById('profileForm');
+    
+    profileForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!profileForm.checkValidity()) {
+            event.stopPropagation();
+            profileForm.classList.add('was-validated');
+            return;
+        }
+
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            gender: document.querySelector('input[name="gender"]:checked')?.value,
+            dateOfBirth: document.getElementById('dateOfBirth').value
+        };
+
+        try {
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+            const response = await fetch('/api/users/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    Profile updated successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                profileForm.insertBefore(alertDiv, profileForm.firstChild);
+
+                // Auto-dismiss the success message
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+            } else {
+                throw new Error(data.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${error.message || 'An error occurred. Please try again.'}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            profileForm.insertBefore(alertDiv, profileForm.firstChild);
+
+            // Auto-dismiss the error message
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        } finally {
+            // Reset button state
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Save Changes';
+        }
+    });
+
+    // Change Password Button Handler
+    document.getElementById('changePasswordBtn').addEventListener('click', function() {
+        window.location.href = '/users/change-password';
+    });
+});
+</script> 

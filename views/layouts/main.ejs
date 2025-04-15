@@ -228,30 +228,18 @@
                     <div class="container">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex gap-4">
-                                
-                                <a href="/account" style="color: white;">My account</a>
-                                <span class="delivery-time" style="color: white;">We deliver to you every day from 7:00 to 23:00</span></span>
+                                <% if (locals.user) { %>
+                                    <a href="/auth/profile" style="color: white;">My account</a>
+                                <% } else { %>
+                                    <a href="/auth/login" style="color: white;">Sign In</a>
+                                <% } %>
+                                <span class="delivery-time" style="color: white;">We deliver to you every day from 7:00 to 23:00</span>
                             </div>
                             <div class="d-flex gap-4">
-                                
-                              
                                 <a href="/orders" style="color: white;">Order Tracking</a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-white">FREE delivery & 40% Discount for next 3 orders! Place your 1st order in.</span>
-                        </div>
-                        <div class="countdown text-white">
-                            Until the end of the sale: 
-                            <span class="time">47</span> days
-                            <span class="time">06</span> hours
-                            <span class="time">55</span> minutes
-                            <span class="time">51</span> sec.
-                        </div>
-                    </div> -->
                 </div>
             </div>
 
@@ -320,7 +308,7 @@
                                             </div>
                                         </a>
                                         <ul class="dropdown-menu dropdown-menu-end account-dropdown">
-                                            <li><a class="dropdown-item" href="/account/profile">
+                                            <li><a class="dropdown-item" href="/users/profile">
                                                 <i class="fas fa-user-circle me-2"></i>Profile
                                             </a></li>
                                             <li><a class="dropdown-item" href="/account/orders">
@@ -336,7 +324,7 @@
                                         </ul>
                                     </div>
                                 <% } else { %>
-                                    <a href="/users/login" class="d-flex align-items-center gap-2">
+                                    <a href="/auth/login" class="d-flex align-items-center gap-2">
                                         <i class="fas fa-user"></i>
                                         <div class="d-flex flex-column">
                                             <span class="small">Sign in</span>

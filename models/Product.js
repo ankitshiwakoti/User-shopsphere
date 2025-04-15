@@ -103,7 +103,6 @@ const productSchema = new mongoose.Schema({
 });
 
 // Index for faster queries
-productSchema.index({ name: 'text', description: 'text', shortDescription: 'text' });
 productSchema.index({ category: 1 });
 productSchema.index({ status: 1 });
 productSchema.index({ 'attributes.color': 1 });

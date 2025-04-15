@@ -10,6 +10,7 @@ import jwt from 'jsonwebtoken';
 import cookieParser from 'cookie-parser';
 import paymentRoutes from './routes/payment.js';
 import reviewRoutes from './routes/reviews.js';
+import userRoutes from './routes/userRoutes.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -165,7 +166,6 @@ import authRouter from './routes/authRoutes.js';
 import wishlistRouter from './routes/wishlistRoutes.js';
 import checkoutRouter from './routes/checkout.js';
 
-
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/cart', cartRouter);
@@ -174,15 +174,16 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // Web routes
+app.use('/auth', authRouter);
 app.use('/orders', ordersRouter);
 app.use('/', indexRouter);
 app.use('/products', productsRouter);
-app.use('/users', usersRouter);
+app.use('/users', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/cart', cartRouter);
 app.use('/shop', shopRouter);
 app.use('/wishlist', wishlistRouter);
 app.use('/checkout', checkoutRouter);
-
 
 // Error handler
 app.use((err, req, res, next) => {

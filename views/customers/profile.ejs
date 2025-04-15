@@ -1,0 +1,493 @@
+<!-- Profile Page -->
+<div class="container py-5">
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-4">
+                        <% if (user.avatar) { %>
+                            <img src="<%= user.avatar %>" alt="Profile Picture" class="rounded-circle img-fluid" style="width: 150px; height: 150px; object-fit: cover;">
+                        <% } else { %>
+                            <div class="default-avatar rounded-circle d-flex align-items-center justify-content-center bg-primary text-white" style="width: 150px; height: 150px; font-size: 3rem; margin: 0 auto;">
+                                <%= user.name.charAt(0).toUpperCase() %>
+                            </div>
+                        <% } %>
+                        <button class="btn btn-sm btn-outline-primary mt-3" id="changeAvatarBtn">
+                            <i class="fas fa-camera me-2"></i>Change Picture
+                        </button>
+                    </div>
+                    <h4 class="mb-1"><%= user.name %></h4>
+                    <p class="text-muted mb-4"><%= user.email %></p>
+                    <div class="d-flex justify-content-center mb-2">
+                        <button class="btn btn-primary me-2" id="editProfileBtn">Edit Profile</button>
+                        <button class="btn btn-outline-danger" id="changePasswordBtn">Change Password</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Navigation -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="/users/profile">
+                            <i class="fas fa-user me-2"></i>Profile Information
+                        </a>
+                        <a class="nav-link" href="/orders">
+                            <i class="fas fa-shopping-bag me-2"></i>My Orders
+                        </a>
+                        <a class="nav-link" href="/users/addresses">
+                            <i class="fas fa-map-marker-alt me-2"></i>My Addresses
+                        </a>
+                        <a class="nav-link" href="/wishlist">
+                            <i class="fas fa-heart me-2"></i>Wishlist
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="col-lg-8">
+            <!-- Profile Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profileForm" class="needs-validation" novalidate>
+                        <!-- Full Name -->
+                        <div class="mb-4">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="<%= user.name %>" required>
+                            <div class="invalid-feedback">
+                                Please enter your full name.
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid email address.
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="mb-4">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" value="<%= user.phone || '' %>" pattern="[0-9]{10}">
+                            <div class="invalid-feedback">
+                                Please enter a valid 10-digit phone number.
+                            </div>
+                        </div>
+
+                        <!-- Gender -->
+                        <div class="mb-4">
+                            <label class="form-label">Gender</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="male" value="male" <%= user.gender === 'male' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="male">Male</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="female" value="female" <%= user.gender === 'female' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="female">Female</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="gender" id="other" value="other" <%= user.gender === 'other' ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="other">Other</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="mb-4">
+                            <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '' %>">
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Two-Factor Authentication -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Two-Factor Authentication</h5>
+                    <% if (!user.mfaEnabled) { %>
+                        <button class="btn btn-primary btn-sm" id="setup2FABtn">
+                            <i class="fas fa-shield-alt me-2"></i>Set Up 2FA
+                        </button>
+                    <% } else { %>
+                        <button class="btn btn-danger btn-sm" id="disable2FABtn">
+                            <i class="fas fa-shield-alt me-2"></i>Disable 2FA
+                        </button>
+                    <% } %>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <% if (user.mfaEnabled) { %>
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Enabled</span>
+                            <% } else { %>
+                                <span class="badge bg-warning"><i class="fas fa-times me-1"></i>Disabled</span>
+                            <% } %>
+                        </div>
+                        <p class="mb-0">Two-factor authentication adds an extra layer of security to your account by requiring more than just a password to sign in.</p>
+                    </div>
+
+                    <!-- 2FA Setup Modal -->
+                    <div class="modal fade" id="setup2FAModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Set Up Two-Factor Authentication</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="setup-steps">
+                                        <!-- Step 1: Install App -->
+                                        <div class="step-1">
+                                            <h6>1. Install an authenticator app</h6>
+                                            <p>Download and install an authenticator app like Google Authenticator or Authy on your mobile device.</p>
+                                            <div class="d-flex justify-content-around mb-3">
+                                                <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" target="_blank" class="btn btn-outline-secondary">
+                                                    <i class="fab fa-google-play me-2"></i>Google Play
+                                                </a>
+                                                <a href="https://apps.apple.com/app/google-authenticator/id388497605" target="_blank" class="btn btn-outline-secondary">
+                                                    <i class="fab fa-app-store-ios me-2"></i>App Store
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 2: Scan QR Code -->
+                                        <div class="step-2 d-none">
+                                            <h6>2. Scan this QR code</h6>
+                                            <p>Open your authenticator app and scan this QR code to add your account.</p>
+                                            <div class="text-center mb-3">
+                                                <div id="qrCode" class="d-inline-block p-3 bg-white rounded"></div>
+                                            </div>
+                                            <div class="alert alert-warning">
+                                                <strong>Important:</strong> Store these backup codes safely. You'll need them if you lose access to your authenticator app.
+                                                <div id="backupCodes" class="mt-2 font-monospace"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Step 3: Verify Code -->
+                                        <div class="step-3 d-none">
+                                            <h6>3. Verify Setup</h6>
+                                            <p>Enter the 6-digit code from your authenticator app to verify the setup.</p>
+                                            <form id="verify2FAForm">
+                                                <div class="mb-3">
+                                                    <input type="text" class="form-control" id="verificationCode" 
+                                                           placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}" required>
+                                                    <div class="invalid-feedback">
+                                                        Please enter a valid 6-digit code.
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">
+                                                    Verify and Enable 2FA
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" id="nextStepBtn">Next</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disable 2FA Modal -->
+                    <div class="modal fade" id="disable2FAModal" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Disable Two-Factor Authentication</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Warning:</strong> Disabling 2FA will make your account less secure.
+                                    </div>
+                                    <p>Enter your password to confirm:</p>
+                                    <form id="disable2FAForm">
+                                        <div class="mb-3">
+                                            <input type="password" class="form-control" id="currentPassword" 
+                                                   placeholder="Enter your password" required>
+                                            <div class="invalid-feedback">
+                                                Please enter your password.
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-link" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" form="disable2FAForm" class="btn btn-danger">Disable 2FA</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Orders</h5>
+                    <a href="/orders" class="btn btn-link">View All</a>
+                </div>
+                <div class="card-body">
+                    <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% orders.slice(0, 5).forEach(order => { %>
+                                        <tr>
+                                            <td>#<%= order._id.toString().slice(-6) %></td>
+                                            <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                            <td><span class="badge bg-<%= order.status === 'delivered' ? 'success' : 'warning' %>"><%= order.status %></span></td>
+                                            <td>$<%= order.total.toFixed(2) %></td>
+                                            <td>
+                                                <a href="/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">View</a>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="text-center py-4">
+                            <img src="/images/no-orders.svg" alt="No Orders" style="width: 120px; opacity: 0.5;" class="mb-3">
+                            <h6 class="text-muted">No orders found</h6>
+                            <a href="/" class="btn btn-primary mt-3">Start Shopping</a>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const profileForm = document.getElementById('profileForm');
+    
+    profileForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        if (!profileForm.checkValidity()) {
+            event.stopPropagation();
+            profileForm.classList.add('was-validated');
+            return;
+        }
+
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            gender: document.querySelector('input[name="gender"]:checked')?.value,
+            dateOfBirth: document.getElementById('dateOfBirth').value
+        };
+
+        try {
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+            const response = await fetch('/users/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    Profile updated successfully!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                profileForm.insertBefore(alertDiv, profileForm.firstChild);
+
+                // Auto-dismiss the success message
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 3000);
+
+                // Update the displayed name and email in the sidebar
+                document.querySelector('.card-body h4.mb-1').textContent = formData.name;
+                document.querySelector('.card-body p.text-muted.mb-4').textContent = formData.email;
+            } else {
+                throw new Error(data.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            // Show error message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${error.message || 'An error occurred. Please try again.'}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            profileForm.insertBefore(alertDiv, profileForm.firstChild);
+
+            // Auto-dismiss the error message
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        } finally {
+            // Reset button state
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Save Changes';
+        }
+    });
+
+    // Change Password Button Handler
+    document.getElementById('changePasswordBtn').addEventListener('click', function() {
+        window.location.href = '/users/change-password';
+    });
+
+    // 2FA Setup Functionality
+    let currentStep = 1;
+    let setupData = null;
+    const modal = new bootstrap.Modal(document.getElementById('setup2FAModal'));
+    const disable2FAModal = new bootstrap.Modal(document.getElementById('disable2FAModal'));
+
+    // Setup 2FA Button Click
+    document.getElementById('setup2FABtn')?.addEventListener('click', async function() {
+        currentStep = 1;
+        updateSetupSteps();
+        modal.show();
+    });
+
+    // Next Step Button Click
+    document.getElementById('nextStepBtn')?.addEventListener('click', async function() {
+        if (currentStep === 1) {
+            try {
+                const response = await fetch('/users/2fa/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to generate 2FA setup');
+                
+                setupData = await response.json();
+                document.getElementById('qrCode').innerHTML = `<img src="${setupData.qrCode}" alt="QR Code">`;
+                document.getElementById('backupCodes').innerHTML = setupData.backupCodes
+                    .map(code => `<code>${code}</code>`)
+                    .join(' ');
+                
+                currentStep++;
+                updateSetupSteps();
+            } catch (error) {
+                showAlert('error', 'Failed to generate 2FA setup. Please try again.');
+            }
+        } else if (currentStep === 2) {
+            currentStep++;
+            updateSetupSteps();
+        }
+    });
+
+    // Verify 2FA Setup Form Submit
+    document.getElementById('verify2FAForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const code = document.getElementById('verificationCode').value;
+        
+        try {
+            const response = await fetch('/users/2fa/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: code })
+            });
+
+            if (!response.ok) throw new Error('Invalid verification code');
+
+            showAlert('success', '2FA has been successfully enabled!');
+            modal.hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error) {
+            showAlert('error', error.message);
+        }
+    });
+
+    // Disable 2FA Form Submit
+    document.getElementById('disable2FAForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const password = document.getElementById('currentPassword').value;
+        
+        try {
+            const response = await fetch('/users/2fa/disable', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password })
+            });
+
+            if (!response.ok) throw new Error('Invalid password');
+
+            showAlert('success', '2FA has been disabled.');
+            disable2FAModal.hide();
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error) {
+            showAlert('error', error.message);
+        }
+    });
+
+    // Disable 2FA Button Click
+    document.getElementById('disable2FABtn')?.addEventListener('click', function() {
+        disable2FAModal.show();
+    });
+
+    function updateSetupSteps() {
+        document.querySelectorAll('.setup-steps > div').forEach((step, index) => {
+            step.classList.toggle('d-none', index + 1 !== currentStep);
+        });
+        
+        const nextBtn = document.getElementById('nextStepBtn');
+        nextBtn.style.display = currentStep === 3 ? 'none' : 'block';
+    }
+
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.modal-body').insertBefore(alertDiv, document.querySelector('.modal-body').firstChild);
+        
+        setTimeout(() => alertDiv.remove(), 3000);
+    }
+});
+</script> 
