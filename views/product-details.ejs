@@ -42,10 +42,11 @@
             <!-- Product Images -->
             <div class="col-lg-6">
                 <div class="product-images">
-                    <div class="main-image">
+                    <div class="main-image" style="height: 400px; display: flex; justify-content: center; align-items: center; overflow: hidden;">
                         <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
                              alt="<%= product.name %>" 
-                             id="main-product-image">
+                             id="main-product-image"
+                             style="width: 80%; height: 80%; object-fit: contain;">
                     </div>
                     <div class="thumbnail-images">
                         <% if (product.images && product.images.length > 0) { %>
@@ -53,12 +54,16 @@
                                 <div class="thumbnail">
                                     <img src="<%= image.url %>" 
                                          alt="<%= product.name %> - Image <%= index + 1 %>"
-                                         onclick="changeMainImage(this.src)">
+                                         onclick="changeMainImage(this.src)"
+                                         style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;">
                                 </div>
                             <% }); %>
                         <% } else { %>
                             <div class="thumbnail">
-                                <img src="/images/products/default-product.jpg" alt="Default Product Image" onclick="changeMainImage(this.src)">
+                                <img src="/images/products/default-product.jpg" 
+                                     alt="Default Product Image" 
+                                     onclick="changeMainImage(this.src)"
+                                     style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;">
                             </div>
                         <% } %>
                     </div>
@@ -106,8 +111,7 @@
                         <span class="review-count">(<%= product.reviews ? product.reviews.length : 0 %> reviews)</span>
                     </div>
                     <div class="price">
-                        <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
-                        <span class="old-price">$<%= product.price.toFixed(2) %></span>
+                        <span class="new-price">$<%= product.price.toFixed(2) %></span>
                     </div>
                    
                     <div class="quantity-selector">
@@ -680,5 +684,47 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #4B5563;
     line-height: 1.6;
     margin: 0;
+}
+
+/* Product Images */
+.product-images {
+    margin-bottom: 2rem;
+}
+
+.main-image {
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.thumbnail-images {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.thumbnail {
+    flex: 0 0 auto;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.thumbnail:hover {
+    border-color: var(--color-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .main-image img {
+        height: 300px;
+    }
+    
+    .thumbnail img {
+        width: 60px;
+        height: 60px;
+    }
 }
 </style>

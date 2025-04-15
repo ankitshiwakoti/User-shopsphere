@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import paymentRoutes from './routes/payment.js';
 import reviewRoutes from './routes/reviews.js';
 import userRoutes from './routes/userRoutes.js';
+import extrapagesRoutes from './routes/extrapagesRoutes.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -184,6 +185,9 @@ app.use('/cart', cartRouter);
 app.use('/shop', shopRouter);
 app.use('/wishlist', wishlistRouter);
 app.use('/checkout', checkoutRouter);
+
+// Extra Pages Routes
+app.use('/', extrapagesRoutes);
 
 // Error handler
 app.use((err, req, res, next) => {

@@ -11,12 +11,20 @@ export const getShopPage = async (req, res) => {
         // Get filter parameters from query
         const categoryIds = req.query.category ? (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
         const minPrice = parseFloat(req.query.minPrice) || 0;
-        const maxPrice = parseFloat(req.query.maxPrice) || 1000;
+        const maxPrice = parseFloat(req.query.maxPrice) || 0;
         const searchQuery = req.query.search || '';
         const sortBy = req.query.sort || 'newest';
         const page = parseInt(req.query.page) || 1;
         const limit = 12; // Products per page
         
+        // Get the highest price in the database
+        const highestPriceProduct = await Product.findOne({ status: 'published' })
+            .sort({ price: -1 })
+            .select('price');
+        
+        const maxPriceLimit = highestPriceProduct ? highestPriceProduct.price : 1000;
+        const currentMaxPrice = maxPrice || maxPriceLimit;
+
         // Build the query
         let query = { status: 'published' };
         
@@ -69,13 +77,13 @@ export const getShopPage = async (req, res) => {
         }
 
         // Add price filter - only add if minPrice or maxPrice is provided
-        if (minPrice > 0 || maxPrice < 1000) {
+        if (minPrice > 0 || currentMaxPrice < maxPriceLimit) {
             query.price = {};
             if (minPrice > 0) {
                 query.price.$gte = minPrice;
             }
-            if (maxPrice < 1000) {
-                query.price.$lte = maxPrice;
+            if (currentMaxPrice < maxPriceLimit) {
+                query.price.$lte = currentMaxPrice;
             }
         }
 
@@ -199,7 +207,8 @@ export const getShopPage = async (req, res) => {
             activeCategory: activeCategory || null,
             filters: {
                 minPrice,
-                maxPrice,
+                maxPrice: currentMaxPrice,
+                maxPriceLimit,
                 inStock: false,
                 onSale: false,
                 sort: sortBy,

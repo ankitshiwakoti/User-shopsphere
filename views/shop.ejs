@@ -36,12 +36,12 @@
                         <div class="price-slider-container">
                             <div class="price-slider">
                                 <div class="slider-track"></div>
-                                <input type="range" class="min-range" min="0" max="1000" value="<%= filters.minPrice || 0 %>" name="minPrice">
-                                <input type="range" class="max-range" min="0" max="1000" value="<%= filters.maxPrice || 1000 %>" name="maxPrice">
+                                <input type="range" class="min-range" min="0" max="<%= filters.maxPriceLimit %>" value="<%= filters.minPrice || 0 %>" name="minPrice">
+                                <input type="range" class="max-range" min="0" max="<%= filters.maxPriceLimit %>" value="<%= filters.maxPrice || filters.maxPriceLimit %>" name="maxPrice">
                             </div>
                             <div class="price-values">
                                 <span class="min-value">$<%= filters.minPrice || 0 %></span>
-                                <span class="max-value">$<%= filters.maxPrice || 1000 %></span>
+                                <span class="max-value">$<%= filters.maxPrice || filters.maxPriceLimit %></span>
                             </div>
                         </div>
                     </form>
@@ -99,7 +99,7 @@
                 </div>
 
                 <!-- Filter by Color -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">Filter by Color</h5>
                         <div class="color-filters">
@@ -112,12 +112,12 @@
                             </div>
                         </div>
                     </div>
-                </div>
-
+                </div> -->
+<!-- 
                 <!-- Filter by Brand -->
                 <div class="card mb-4">
                     <div class="card-body">
-                        <h5 class="card-title">Filter by Brand</h5>
+                        <!-- <h5 class="card-title">Filter by Brand</h5>
                         <div class="brand-filters">
                             <div class="brand-filter">
                                 <label class="d-flex align-items-center">
@@ -126,15 +126,15 @@
                                     <span class="brand-count">(1)</span>
                                 </label>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
-                </div>
+                </div> 
 
                 <!-- Product Status -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     
                     <div class="card-body">
-                        <h5 class="card-title">Product Status</h5>
+                       <h5 class="card-title">Product Status</h5>
                         <div class="status-filters">
                             <div class="status-filter">
                                 <label class="d-flex align-items-center">
@@ -148,9 +148,9 @@
                                     <span>On Sale</span>
                                 </label>
                             </div>
-                        </div>
+                        </div> 
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -214,9 +214,10 @@
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <a href="/shop/product/<%= product._id %>" class="product-link">
                                     <div class="product-card" data-product-id="<%= product._id %>">
-                                        <div class="product-image">
+                                        <div class="product-image" style="height: 200px; display: flex; justify-content: center; align-items: center; overflow: hidden; background-color: #f8f9fa;">
                                             <img src="<%= product.images && product.images.length > 0 ? (product.images.find(img => img.isMain)?.url || product.images[0]?.url) : '/images/products/default-product.jpg' %>" 
-                                                 alt="<%= product.name %>">
+                                                 alt="<%= product.name %>"
+                                                 style="object-fit: contain;">
                                             <% if (product.stock <= 0) { %>
                                                 <div class="out-of-stock-overlay">
                                                     <span>Out of Stock</span>
@@ -233,8 +234,7 @@
                                                 <span class="text-muted ms-1">(<%= product.reviews ? product.reviews.length : 0 %>)</span>
                                             </div>
                                             <div class="price">
-                                                <span class="new-price">$<%= (product.price * 0.85).toFixed(2) %></span>
-                                                <span class="old-price">$<%= product.price.toFixed(2) %></span>
+                                                <span class="new-price">$<%= product.price.toFixed(2) %></span>
                                             </div>
                                             <div class="button-group">
                                                 <button class="btn-wishlist" data-product-id="<%= product._id %>">

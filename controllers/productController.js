@@ -54,21 +54,21 @@ export const getProducts = async (req, res) => {
             // If searching, sort by text score first
             sortObj = { score: { $meta: 'textScore' } };
         } else {
-            switch (sort) {
-                case 'price_asc':
-                    sortObj = { price: 1 };
-                    break;
-                case 'price_desc':
-                    sortObj = { price: -1 };
-                    break;
-                case 'name_asc':
-                    sortObj = { name: 1 };
-                    break;
-                case 'name_desc':
-                    sortObj = { name: -1 };
-                    break;
-                default:
-                    sortObj = { createdAt: -1 }; // Default sort by newest
+        switch (sort) {
+            case 'price_asc':
+                sortObj = { price: 1 };
+                break;
+            case 'price_desc':
+                sortObj = { price: -1 };
+                break;
+            case 'name_asc':
+                sortObj = { name: 1 };
+                break;
+            case 'name_desc':
+                sortObj = { name: -1 };
+                break;
+            default:
+                sortObj = { createdAt: -1 }; // Default sort by newest
             }
         }
 
@@ -136,7 +136,7 @@ export const getProduct = async (req, res) => {
 
         if (!product) {
             console.log(`Product not found with ID: ${productId}`);
-            return res.status(404).render('product-details', {
+            return res.status(404).render('product-details', { 
                 product: null,
                 relatedProducts: []
             });
@@ -246,21 +246,37 @@ export const getProduct = async (req, res) => {
             ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
             : 0;
 
-        res.render('product-details', {
+        // Convert product to plain object
+        const productObj = product.toObject();
+        
+        // Ensure category is properly included in the plain object
+        if (!productObj.category && product.category) {
+            productObj.category = {
+                _id: product.category._id,
+                name: product.category.name,
+                parent: product.category.parent
+            };
+        }
+
+        // Prepare the data for the view
+        const viewData = {
+            title: `${product.name} - ShopSphere`,
             product: {
-                ...product.toObject(),
-                ratingBreakdown,
-                averageRating: averageRating.toFixed(1)
+                ...productObj,
+                // Explicitly set the category to ensure it's properly formatted
+                category: {
+                    _id: productObj.category._id,
+                    name: productObj.category.name,
+                    parent: productObj.category.parent
+                }
             },
-            relatedProducts: plainRelatedProducts,
-            user: req.user,
-            locals: {
-                user: req.user
-            }
-        });
+            relatedProducts: relatedProducts.map(p => p.toObject())
+        };
+
+        res.render('product-details', viewData);
     } catch (error) {
         console.error('Error fetching product details:', error);
-        res.status(500).render('product-details', {
+        res.status(500).render('product-details', { 
             product: null,
             relatedProducts: [],
             error: 'Error fetching product details. Please try again later.'

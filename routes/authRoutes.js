@@ -25,8 +25,10 @@ router.post('/register', register);
 router.post('/logout', (req, res) => {
     res.clearCookie('token', { 
         path: '/',
-        httpOnly: false,
-        sameSite: 'Lax'
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined
     });
     res.json({ success: true, message: 'Logged out successfully' });
 });
