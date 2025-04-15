@@ -116,81 +116,154 @@ export const getProducts = async (req, res) => {
 // Get single product
 export const getProduct = async (req, res) => {
     try {
-        // Get the product with populated reviews and user data
-        let product = await Product.findById(req.params.id)
+        const productId = req.params.id;
+        console.log('Fetching product with ID:', productId);
+        
+        // Find product and populate category and reviews
+        const product = await Product.findById(productId)
             .populate('category')
             .populate({
                 path: 'reviews',
-                model: 'Review',
                 populate: {
                     path: 'user',
-                    model: 'Customer',
                     select: 'name email'
                 },
-                match: { user: { $ne: null } }, // Only include reviews with valid users
+                match: { user: { $ne: null } },
                 options: { 
                     sort: { createdAt: -1 }
                 }
             });
 
         if (!product) {
-            return res.status(404).render('product-details', { 
-                error: 'Product not found',
-                product: null
+            console.log(`Product not found with ID: ${productId}`);
+            return res.status(404).render('product-details', {
+                product: null,
+                relatedProducts: []
             });
         }
 
-        // Filter out any null or undefined reviews and ensure they have valid user data
-        if (product.reviews) {
-            product.reviews = product.reviews.filter(review => 
-                review && 
-                review._id && 
-                review.user && 
-                review.user._id && 
-                review.rating && 
-                review.createdAt
-            );
-            
-            // Update the product in the database to remove invalid reviews
-            await Product.findByIdAndUpdate(product._id, { 
-                reviews: product.reviews.map(review => review._id),
-                averageRating: product.reviews.length > 0 
-                    ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length 
-                    : 0
+        console.log('Main product details:', {
+            name: product.name,
+            stock: product.stock,
+            category: product.category?.name,
+            categoryId: product.category?._id
+        });
+
+        // Get related products (same category, in stock only)
+        const relatedProductsQuery = {
+            category: product.category._id,
+            _id: { $ne: productId },
+            status: 'published',
+            stock: { $gt: 0 }  // Only fetch products that are in stock
+        };
+
+        console.log('Related products query:', JSON.stringify(relatedProductsQuery, null, 2));
+
+        // First, check if there are any products in the same category
+        const categoryProductCount = await Product.countDocuments({
+            category: product.category._id,
+            status: 'published'
+        });
+
+        console.log('Total products in category:', categoryProductCount);
+
+        let relatedProducts = await Product.find(relatedProductsQuery)
+            .populate('category')
+            .select('name price images stock category')
+            .limit(4);
+
+        // Log detailed information about each related product
+        console.log('Related Products found:', relatedProducts.length);
+        relatedProducts.forEach(p => {
+            console.log('Product details:', {
+                name: p.name,
+                stock: p.stock,
+                id: p._id,
+                category: p.category?.name,
+                status: p.status,
+                isInStock: p.stock > 0,
+                stockType: typeof p.stock,
+                stockValue: p.stock
             });
+        });
+
+        // If no related products found, try to find any products in stock
+        if (relatedProducts.length === 0) {
+            console.log('No related products found, searching for any in-stock products');
+            const fallbackProducts = await Product.find({
+                _id: { $ne: productId },
+                status: 'published',
+                stock: { $gt: 0 }
+            })
+            .populate('category')
+            .select('name price images stock category')
+            .limit(4);
+
+            console.log('Fallback products found:', fallbackProducts.length);
+            fallbackProducts.forEach(p => {
+                console.log('Fallback product details:', {
+                    name: p.name,
+                    stock: p.stock,
+                    id: p._id,
+                    category: p.category?.name,
+                    status: p.status,
+                    isInStock: p.stock > 0,
+                    stockType: typeof p.stock,
+                    stockValue: p.stock
+                });
+            });
+
+            // Use fallback products if available
+            if (fallbackProducts.length > 0) {
+                relatedProducts = fallbackProducts;
+            }
         }
 
-        // Get related products
-        const relatedProducts = await Product.find({
-            category: product.category,
-            _id: { $ne: product._id }
-        }).limit(4);
+        // Convert products to plain objects to ensure proper serialization
+        const plainRelatedProducts = relatedProducts.map(p => p.toObject());
+        console.log('Final related products after conversion:', plainRelatedProducts.map(p => ({
+            name: p.name,
+            stock: p.stock,
+            isInStock: p.stock > 0
+        })));
 
-        // Format dates and ensure all review data is valid
-        if (product.reviews) {
-            product.reviews = product.reviews.map(review => ({
-                ...review.toObject(),
-                createdAt: review.createdAt.toLocaleDateString(),
-                user: {
-                    name: review.user.name || review.user.email,
-                    email: review.user.email
+        // Calculate rating breakdown
+        const ratingBreakdown = {
+            5: 0, 4: 0, 3: 0, 2: 0, 1: 0
+        };
+        
+        if (product.reviews && product.reviews.length > 0) {
+            product.reviews.forEach(review => {
+                if (review.rating >= 1 && review.rating <= 5) {
+                    ratingBreakdown[review.rating]++;
                 }
-            }));
+            });
         }
 
-        res.render('product-details', { 
-            product,
-            relatedProducts,
+        // Calculate average rating
+        const totalReviews = product.reviews ? product.reviews.length : 0;
+        const averageRating = totalReviews > 0 
+            ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+            : 0;
+
+        res.render('product-details', {
+            product: {
+                ...product.toObject(),
+                ratingBreakdown,
+                averageRating: averageRating.toFixed(1)
+            },
+            relatedProducts: plainRelatedProducts,
             user: req.user,
             locals: {
                 user: req.user
             }
         });
     } catch (error) {
-        console.error('Error fetching product:', error);
-        res.status(500).render('product-details', { 
-            error: 'Error fetching product details',
-            product: null
+        console.error('Error fetching product details:', error);
+        res.status(500).render('product-details', {
+            product: null,
+            relatedProducts: [],
+            error: 'Error fetching product details. Please try again later.'
         });
     }
 };
@@ -259,74 +332,6 @@ export const deleteProduct = async (req, res) => {
         res.status(400).json({
             success: false,
             error: error.message
-        });
-    }
-};
-
-export const getProductDetails = async (req, res) => {
-    try {
-        const productId = req.params.id;
-        
-        // Find product and populate category and reviews
-        const product = await Product.findById(productId)
-            .populate('category')
-            .populate({
-                path: 'reviews',
-                populate: {
-                    path: 'user',
-                    select: 'name'
-                }
-            });
-        
-        if (!product) {
-            console.log(`Product not found with ID: ${productId}`);
-            return res.status(404).render('product-details', {
-                product: null,
-                relatedProducts: []
-            });
-        }
-
-        // Get related products (same category)
-        const relatedProducts = await Product.find({
-            category: product.category._id,
-            _id: { $ne: productId }
-        })
-        .limit(4)
-        .select('name price images stock');
-
-        // Calculate rating breakdown
-        const ratingBreakdown = {
-            5: 0, 4: 0, 3: 0, 2: 0, 1: 0
-        };
-        
-        if (product.reviews && product.reviews.length > 0) {
-            product.reviews.forEach(review => {
-                if (review.rating >= 1 && review.rating <= 5) {
-                    ratingBreakdown[review.rating]++;
-                }
-            });
-        }
-
-        // Calculate average rating
-        const totalReviews = product.reviews ? product.reviews.length : 0;
-        const averageRating = totalReviews > 0 
-            ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-            : 0;
-
-        res.render('product-details', {
-            product: {
-                ...product.toObject(),
-                ratingBreakdown,
-                averageRating: averageRating.toFixed(1)
-            },
-            relatedProducts
-        });
-    } catch (error) {
-        console.error('Error fetching product details:', error);
-        res.status(500).render('product-details', {
-            product: null,
-            relatedProducts: [],
-            error: 'Error fetching product details. Please try again later.'
         });
     }
 };

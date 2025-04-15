@@ -1,0 +1,54 @@
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/users/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.requireMfa) {
+            // Redirect to 2FA verification page
+            window.location.href = '/users/2fa-verify';
+        } else if (response.ok) {
+            // Show success message
+            showAlert('success', data.message);
+            // Redirect to home page after successful login
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        } else {
+            showAlert('danger', data.message);
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showAlert('danger', 'An error occurred during login');
+    }
+});
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const form = document.getElementById('loginForm');
+    form.insertBefore(alertDiv, form.firstChild);
+    
+    // Auto dismiss after 3 seconds
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script> 

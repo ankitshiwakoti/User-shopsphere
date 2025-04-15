@@ -1,0 +1,88 @@
+
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Two-Factor Authentication</h3>
+                </div>
+                <div class="card-body">
+                    <form id="twoFactorForm">
+                        <div class="mb-3">
+                            <label for="code" class="form-label">Enter 2FA Code</label>
+                            <input type="text" class="form-control" id="code" name="code" required 
+                                   placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}">
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary w-100">Verify</button>
+                        </div>
+                        <div class="text-center">
+                            <p>Don't have your authenticator app?</p>
+                            <button type="button" class="btn btn-link" id="useBackupCode">
+                                Use a backup code
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('twoFactorForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const code = document.getElementById('code').value;
+    
+    try {
+        const response = await fetch('/users/verify-2fa', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ code })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showAlert('success', data.message);
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        } else {
+            showAlert('danger', data.message);
+        }
+    } catch (error) {
+        console.error('2FA verification error:', error);
+        showAlert('danger', 'An error occurred during verification');
+    }
+});
+
+document.getElementById('useBackupCode').addEventListener('click', () => {
+    const codeInput = document.getElementById('code');
+    codeInput.pattern = '[A-Za-z0-9-]{16}';
+    codeInput.maxLength = 16;
+    codeInput.placeholder = 'Enter backup code';
+    codeInput.value = '';
+});
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const form = document.getElementById('twoFactorForm');
+    form.insertBefore(alertDiv, form.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+</script>
+

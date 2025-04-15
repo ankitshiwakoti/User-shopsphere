@@ -96,7 +96,7 @@ export const getHomePage = async (req, res) => {
         // Get new arrivals with populated categories
         let newArrivals = [];
         try {
-            newArrivals = await Product.findNewArrivals(6);
+            newArrivals = await Product.findNewArrivals(4);
         } catch (error) {
             console.error('Error fetching new arrivals:', error);
             newArrivals = [
@@ -127,7 +127,7 @@ export const getHomePage = async (req, res) => {
         // Get best sellers with populated categories
         let bestSellers = [];
         try {
-            bestSellers = await Product.findBestSellers(6);
+            bestSellers = await Product.findBestSellers(4);
         } catch (error) {
             console.error('Error fetching best sellers:', error);
             bestSellers = [

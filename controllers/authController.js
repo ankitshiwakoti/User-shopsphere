@@ -4,6 +4,8 @@ import Customer from '../models/Customer.js';
 import bcrypt from 'bcryptjs';
 import Cart from '../models/Cart.js';
 import Wishlist from '../models/Wishlist.js';
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
 
 // Generate JWT token
 const generateToken = (customerId) => {
@@ -34,15 +36,11 @@ export const register = async (req, res) => {
             });
         }
         
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        
-        // Create new user
+        // Create new user (password will be hashed by the model's pre-save middleware)
         const newUser = new Customer({
             name,
             email,
-            password: hashedPassword
+            password  // Pass the plain password, it will be hashed by the model
         });
         
         // Save user to database
@@ -153,6 +151,8 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         
+        console.log('Login attempt for:', email); // Debug log
+        
         // Validate required fields
         if (!email || !password) {
             return res.status(400).json({ 
@@ -161,8 +161,13 @@ export const login = async (req, res) => {
             });
         }
         
-        // Find user by email
-        const user = await Customer.findOne({ email });
+        // Find user by email and include password
+        const user = await Customer.findOne({ email }).select('+password');
+        
+        console.log('User found:', user ? 'yes' : 'no'); // Debug log
+        if (user) {
+            console.log('MFA enabled:', user.mfaEnabled); // Debug log
+        }
         
         // Check if user exists
         if (!user) {
@@ -174,19 +179,36 @@ export const login = async (req, res) => {
         
         // Check if password is correct
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match:', isMatch); // Debug log
+        
         if (!isMatch) {
             return res.status(401).json({ 
                 success: false, 
                 message: 'Invalid credentials'
             });
         }
+
+        // Check if MFA is enabled
+        if (user.mfaEnabled) {
+            console.log('MFA required for user'); // Debug log
+            // Get the MFA secret for verification
+            const userWithMFA = await Customer.findById(user._id).select('+mfaSecret');
+            
+            // Store user ID in session for MFA verification
+            req.session.customerId = user._id;
+            req.session.require2FA = true;
+            
+            return res.json({
+                success: true,
+                requireTwoFactor: true,
+                redirectUrl: '/auth/verify-2fa'
+            });
+        }
         
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: user._id }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: '7d' }
-        );
+        console.log('Proceeding with non-MFA login'); // Debug log
+        
+        // If no MFA, generate token and proceed with login
+        const token = generateToken(user._id);
         
         // Set token in cookie
         res.cookie('token', token, {
@@ -196,6 +218,11 @@ export const login = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined
         });
+
+        // Set session data
+        req.session.customerId = user._id;
+        req.session.isAuthenticated = true;
+        req.session.require2FA = false;
         
         // Sync cart and wishlist from session/localStorage to database
         await syncUserData(req, user._id);
@@ -265,4 +292,157 @@ export const updateProfile = async (req, res) => {
         console.error('Update profile error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
+};
+
+// Show 2FA verification page
+export const show2FAVerification = async (req, res) => {
+    if (!req.session.customerId || !req.session.require2FA) {
+        return res.redirect('/auth/login');
+    }
+    res.render('auth/verify-2fa');
+};
+
+// Verify 2FA code
+export const verify2FA = async (req, res) => {
+    try {
+        if (!req.session.customerId || !req.session.require2FA) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const customer = await Customer.findById(req.session.customerId)
+            .select('+mfaSecret +backupCodes');
+        
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        const { code, backupCode } = req.body;
+
+        if (backupCode) {
+            // Verify backup code
+            const backupCodeIndex = customer.backupCodes.findIndex(bc => 
+                bc.code === backupCode && !bc.used
+            );
+            
+            if (backupCodeIndex === -1) {
+                return res.status(400).json({ message: 'Invalid backup code' });
+            }
+
+            // Mark backup code as used
+            customer.backupCodes[backupCodeIndex].used = true;
+            await customer.save();
+        } else {
+            // Verify MFA code
+            const verified = speakeasy.totp.verify({
+                secret: customer.mfaSecret,
+                encoding: 'base32',
+                token: code,
+                window: 1 // Allow 30 seconds clock skew
+            });
+
+            if (!verified) {
+                return res.status(400).json({ message: 'Invalid verification code' });
+            }
+        }
+
+        // Clear MFA requirement and set customer as fully authenticated
+        req.session.require2FA = false;
+        req.session.isAuthenticated = true;
+
+        // Generate token
+        const token = generateToken(customer._id);
+        
+        // Set token in cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined
+        });
+
+        res.json({ 
+            success: true,
+            redirectUrl: '/'
+        });
+    } catch (error) {
+        console.error('MFA verification error:', error);
+        res.status(500).json({ message: 'An error occurred during verification' });
+    }
+};
+
+// Setup 2FA for customer
+export const setup2FA = async (req, res) => {
+    try {
+        const customer = await Customer.findById(req.session.customerId);
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        // Generate new secret
+        const secret = speakeasy.generateSecret({
+            name: `ShopSphere:${customer.email}`
+        });
+
+        // Generate QR code
+        const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+        // Generate backup codes
+        const backupCodes = Array.from({ length: 8 }, () => 
+            Math.random().toString(36).substring(2, 15).toUpperCase()
+        );
+
+        // Save secret and backup codes
+        customer.mfaSecret = secret.base32;
+        customer.backupCodes = backupCodes;
+        customer.mfaEnabled = true;
+        await customer.save();
+
+        res.json({
+            qrCode: qrCodeUrl,
+            backupCodes,
+            secret: secret.base32
+        });
+    } catch (error) {
+        console.error('2FA setup error:', error);
+        res.status(500).json({ message: 'An error occurred during 2FA setup' });
+    }
+};
+
+// Disable 2FA for customer
+export const disable2FA = async (req, res) => {
+    try {
+        const customer = await Customer.findById(req.session.customerId);
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        customer.mfaSecret = undefined;
+        customer.backupCodes = [];
+        customer.mfaEnabled = false;
+        await customer.save();
+
+        res.json({ message: '2FA has been disabled' });
+    } catch (error) {
+        console.error('2FA disable error:', error);
+        res.status(500).json({ message: 'An error occurred while disabling 2FA' });
+    }
+};
+
+// Show login page
+export const showLogin = (req, res) => {
+    res.render('users/login', { 
+        title: 'Login',
+        error: req.flash('error'),
+        success: req.flash('success')
+    });
+};
+
+// Show register page
+export const showRegister = (req, res) => {
+    res.render('users/register', { 
+        title: 'Register',
+        error: req.flash('error'),
+        success: req.flash('success')
+    });
 }; 

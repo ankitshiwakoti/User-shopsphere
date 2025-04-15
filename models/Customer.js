@@ -37,7 +37,22 @@ const customerSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    lastLogin: Date
+    lastLogin: Date,
+    mfaEnabled: {
+        type: Boolean,
+        default: false
+    },
+    mfaSecret: {
+        type: String,
+        select: false // Don't include in normal queries
+    },
+    backupCodes: [{
+        code: String,
+        used: {
+            type: Boolean,
+            default: false
+        }
+    }]
 }, {
     timestamps: true
 });

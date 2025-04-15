@@ -148,30 +148,58 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sentinel) {
         const loadingSpinner = document.querySelector('#loading-spinner');
         const noMoreProducts = document.querySelector('#no-more-products');
+        const productsGrid = document.querySelector('#products-grid');
         let currentPage = 1;
         let isLoading = false;
         let hasMoreProducts = true;
+        let loadedProductIds = new Set(); // Track loaded product IDs
+
+        // Track initial products
+        const initialProducts = document.querySelectorAll('.product-card');
+        initialProducts.forEach(product => {
+            loadedProductIds.add(product.dataset.productId);
+        });
 
         // Function to load more products
         async function loadMoreProducts() {
-            if (isLoading || !hasMoreProducts) return;
+            if (isLoading || !hasMoreProducts) {
+                console.log('Skipping load - isLoading:', isLoading, 'hasMoreProducts:', hasMoreProducts);
+                return;
+            }
             
             try {
                 isLoading = true;
-                loadingSpinner.classList.remove('d-none');
+                if (loadingSpinner) loadingSpinner.classList.remove('d-none');
                 
                 // Get current URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('page', currentPage + 1);
                 
+                console.log('Loading page:', currentPage + 1, 'with params:', urlParams.toString());
+                
                 // Fetch more products
                 const response = await fetch(`/shop/api/products?${urlParams.toString()}`);
                 const data = await response.json();
                 
+                console.log('Received data:', {
+                    productsCount: data.products?.length || 0,
+                    isLastPage: data.isLastPage,
+                    currentPage: currentPage
+                });
+                
                 if (data.products && data.products.length > 0) {
-                    // Append new products to the grid
-                    const productsGrid = document.querySelector('#products-grid');
+                    let newProductsAdded = false;
+
                     data.products.forEach(product => {
+                        // Skip if product is already loaded
+                        if (loadedProductIds.has(product._id)) {
+                            console.log('Skipping duplicate product:', product._id);
+                            return;
+                        }
+                        
+                        loadedProductIds.add(product._id);
+                        newProductsAdded = true;
+
                         const productHtml = `
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <a href="/shop/product/${product._id}" class="product-link">
@@ -205,27 +233,64 @@ document.addEventListener('DOMContentLoaded', function() {
                         productsGrid.insertAdjacentHTML('beforeend', productHtml);
                     });
                     
-                    // Attach event listeners to newly added buttons
-                    attachEventListeners();
+                    if (newProductsAdded) {
+                        currentPage++;
+                        console.log('Incremented page to:', currentPage);
+                        // Attach event listeners to newly added buttons
+                        attachEventListeners();
+                    }
                     
-                    currentPage++;
                     hasMoreProducts = !data.isLastPage;
                     
                     if (!hasMoreProducts) {
-                        noMoreProducts.classList.remove('d-none');
+                        console.log('No more products to load');
+                        if (noMoreProducts) noMoreProducts.classList.remove('d-none');
+                        if (sentinel) sentinel.style.display = 'none';
                     }
                 } else {
+                    console.log('No products received from server');
                     hasMoreProducts = false;
-                    noMoreProducts.classList.remove('d-none');
+                    if (noMoreProducts) noMoreProducts.classList.remove('d-none');
+                    if (sentinel) sentinel.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Error loading more products:', error);
+                hasMoreProducts = false;
+                if (noMoreProducts) noMoreProducts.classList.remove('d-none');
+                if (sentinel) sentinel.style.display = 'none';
             } finally {
                 isLoading = false;
-                loadingSpinner.classList.add('d-none');
+                if (loadingSpinner) loadingSpinner.classList.add('d-none');
             }
         }
         
+        // Reset loaded products when filters change
+        function resetInfiniteScroll() {
+            console.log('Resetting infinite scroll');
+            currentPage = 1;
+            hasMoreProducts = true;
+            loadedProductIds.clear();
+            if (noMoreProducts) noMoreProducts.classList.add('d-none');
+            if (sentinel) sentinel.style.display = 'block';
+            
+            // Clear all existing products
+            const products = document.querySelectorAll('.product-card');
+            console.log('Found existing products:', products.length);
+            
+            products.forEach(product => {
+                product.closest('.col-md-6').remove();
+            });
+        }
+
+        // Listen for filter changes
+        const filterForms = document.querySelectorAll('form[id$="FilterForm"], #categoryForm');
+        filterForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                console.log('Filter form submitted');
+                resetInfiniteScroll();
+            });
+        });
+
         // Attach event listeners to cart and wishlist buttons
         function attachEventListeners() {
             // Let Cart and Wishlist modules handle their own buttons
@@ -250,6 +315,32 @@ document.addEventListener('DOMContentLoaded', function() {
             rootMargin: '100px'
         });
         
+        // Start observing the sentinel element
         observer.observe(sentinel);
+
+        // Initial event listeners
+        attachEventListeners();
+    }
+
+    // Handle view options (grid/list view)
+    const viewOptions = document.querySelectorAll('.view-options .btn');
+    const productsGrid = document.querySelector('#products-grid');
+    
+    if (viewOptions && productsGrid) {
+        viewOptions.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                viewOptions.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                // Toggle between grid and list view
+                if (this.querySelector('i').classList.contains('fa-list')) {
+                    productsGrid.classList.add('list-view');
+                } else {
+                    productsGrid.classList.remove('list-view');
+                }
+            });
+        });
     }
 }); 

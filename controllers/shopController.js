@@ -12,9 +12,18 @@ export const getShopPage = async (req, res) => {
         const categoryIds = req.query.category ? (Array.isArray(req.query.category) ? req.query.category : [req.query.category]) : [];
         const minPrice = parseFloat(req.query.minPrice) || 0;
         const maxPrice = parseFloat(req.query.maxPrice) || 1000;
+        const searchQuery = req.query.search || '';
+        const sortBy = req.query.sort || 'newest';
+        const page = parseInt(req.query.page) || 1;
+        const limit = 12; // Products per page
         
         // Build the query
         let query = { status: 'published' };
+        
+        // Add search query if provided
+        if (searchQuery) {
+            query.$text = { $search: searchQuery };
+        }
         
         // Fetch all categories and organize them
         const allCategories = await Category.find({ status: 'active' }).populate('parent');
@@ -70,13 +79,45 @@ export const getShopPage = async (req, res) => {
             }
         }
 
-        // Log the query for debugging
-        console.log('Product query:', JSON.stringify(query));
+        // Determine sort order
+        let sortOptions = {};
+        switch (sortBy) {
+            case 'newest':
+                sortOptions = { createdAt: -1 };
+                break;
+            case 'oldest':
+                sortOptions = { createdAt: 1 };
+                break;
+            case 'price-low':
+                sortOptions = { price: 1 };
+                break;
+            case 'price-high':
+                sortOptions = { price: -1 };
+                break;
+            case 'popular':
+                sortOptions = { salesCount: -1 };
+                break;
+            default:
+                sortOptions = { createdAt: -1 };
+        }
 
-        // Fetch products based on query
+        // If there's a search query, add text score to sort options
+        if (searchQuery) {
+            sortOptions = { score: { $meta: "textScore" }, ...sortOptions };
+        }
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Get total count of products matching the query
+        const totalProducts = await Product.countDocuments(query);
+
+        // Fetch products based on query with pagination
         let products = await Product.find(query)
             .populate('category')
-            .sort({ createdAt: -1 });
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit);
         
         // If user is logged in, check which products are in their wishlist
         if (req.user) {
@@ -90,9 +131,24 @@ export const getShopPage = async (req, res) => {
                 return productObj;
             });
         }
-        
-        // Log the number of products found
-        console.log(`Found ${products.length} products matching the criteria`);
+
+        // Calculate pagination info
+        const totalPages = Math.ceil(totalProducts / limit);
+        const hasNextPage = page < totalPages;
+        const hasPrevPage = page > 1;
+
+        // If this is an API request (for infinite scroll)
+        if (req.path === '/api/products') {
+            return res.json({
+                products,
+                isLastPage: !hasNextPage,
+                currentPage: page,
+                totalPages,
+                totalProducts
+            });
+        }
+
+        // For regular page load, continue with the rest of the code...
         
         // Organize categories into a tree structure
         const categoryTree = [];
@@ -140,22 +196,23 @@ export const getShopPage = async (req, res) => {
             brands,
             colors,
             activeCategories,
-            activeCategory: activeCategory || null, // Ensure it's explicitly set to null if undefined
+            activeCategory: activeCategory || null,
             filters: {
                 minPrice,
                 maxPrice,
                 inStock: false,
                 onSale: false,
-                sort: 'newest',
-                categories: categoryIds || [] // Ensure categories is always an array
+                sort: sortBy,
+                categories: categoryIds || [],
+                search: searchQuery
             },
             pagination: {
-                page: 1,
-                limit: 20,
-                total: products.length,
-                totalPages: 1,
-                hasNextPage: false,
-                hasPrevPage: false
+                page: page,
+                limit: limit,
+                total: totalProducts,
+                totalPages: totalPages,
+                hasNextPage: hasNextPage,
+                hasPrevPage: hasPrevPage
             }
         };
 
@@ -281,6 +338,55 @@ export const getProductDetails = async (req, res) => {
             product: null,
             relatedProducts: [],
             error: 'Error fetching product details. Please try again later.'
+        });
+    }
+};
+
+// Search products
+export const searchProducts = async (req, res) => {
+    try {
+        const { query } = req.query;
+        
+        if (!query) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Search query is required' 
+            });
+        }
+
+        // Use text search with the weighted index
+        const products = await Product.find(
+            { 
+                $text: { $search: query },
+                status: 'published'
+            },
+            { 
+                score: { $meta: "textScore" } 
+            }
+        )
+        .sort({ score: { $meta: "textScore" } })
+        .populate('category');
+
+        // If user is logged in, check which products are in their wishlist
+        if (req.user) {
+            const wishlist = await Wishlist.findOne({ user: req.user._id });
+            const wishlistItems = wishlist ? wishlist.items.map(item => item.toString()) : [];
+            
+            // Add isInWishlist property to each product
+            products.forEach(product => {
+                product.isInWishlist = wishlistItems.includes(product._id.toString());
+            });
+        }
+
+        res.json({
+            success: true,
+            products
+        });
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error searching products' 
         });
     }
 }; 

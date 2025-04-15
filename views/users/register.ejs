@@ -48,10 +48,11 @@
                                 id="email" 
                                 name="email" 
                                 placeholder="Enter your email"
+                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                                 required
                             >
                             <div class="invalid-feedback mt-2">
-                                Please enter a valid email address.
+                                Please enter a valid email address (e.g., example@domain.com).
                             </div>
                         </div>
 
@@ -65,6 +66,7 @@
                                     id="password" 
                                     name="password" 
                                     placeholder="Create a password"
+                                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
                                     required
                                 >
                                 <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" type="button" id="togglePassword" style="width: 45px;">
@@ -72,7 +74,17 @@
                                 </button>
                             </div>
                             <div class="invalid-feedback mt-2">
-                                Please enter a password.
+                                Password must meet all requirements below.
+                            </div>
+                            <div class="password-requirements small mt-2">
+                                <p class="mb-1">Password must contain:</p>
+                                <ul class="ps-3 mb-0">
+                                    <li id="length-check" class="text-muted">At least 8 characters</li>
+                                    <li id="uppercase-check" class="text-muted">At least one uppercase letter</li>
+                                    <li id="lowercase-check" class="text-muted">At least one lowercase letter</li>
+                                    <li id="number-check" class="text-muted">At least one number</li>
+                                    <li id="special-check" class="text-muted">At least one special character (@$!%*?&)</li>
+                                </ul>
                             </div>
                         </div>
 
@@ -139,34 +151,64 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', async function(event) {
         event.preventDefault();
         
-        if (!form.checkValidity()) {
-            event.stopPropagation();
-            form.classList.add('was-validated');
-            return;
-        }
-
-        // Check if passwords match
-        const password = document.getElementById('password').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+        // Reset any previous validation states
+        form.classList.remove('was-validated');
+        const inputs = form.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.setCustomValidity('');
+            input.classList.remove('is-invalid');
+        });
         
-        if (password !== confirmPassword) {
-            const confirmPasswordInput = document.getElementById('confirmPassword');
-            confirmPasswordInput.setCustomValidity("Passwords don't match");
-            confirmPasswordInput.reportValidity();
-            return;
-        }
-
         // Get form data
         const formData = {
-            fullName: document.getElementById('fullName').value,
-            email: document.getElementById('email').value,
+            name: document.getElementById('fullName').value.trim(),
+            email: document.getElementById('email').value.trim(),
             password: document.getElementById('password').value,
             confirmPassword: document.getElementById('confirmPassword').value
         };
-
-        // Password validation
+        
+        // Validate required fields
+        let isValid = true;
+        
+        if (!formData.name) {
+            const nameInput = document.getElementById('fullName');
+            nameInput.classList.add('is-invalid');
+            nameInput.setCustomValidity('Please enter your name');
+            isValid = false;
+        }
+        
+        if (!formData.email) {
+            const emailInput = document.getElementById('email');
+            emailInput.classList.add('is-invalid');
+            emailInput.setCustomValidity('Please enter your email');
+            isValid = false;
+        }
+        
+        if (!formData.password) {
+            const passwordInput = document.getElementById('password');
+            passwordInput.classList.add('is-invalid');
+            passwordInput.setCustomValidity('Please enter a password');
+            isValid = false;
+        }
+        
+        // Check if passwords match
         if (formData.password !== formData.confirmPassword) {
-            document.getElementById('confirmPassword').setCustomValidity('Passwords do not match');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            confirmPasswordInput.classList.add('is-invalid');
+            confirmPasswordInput.setCustomValidity('Passwords do not match');
+            isValid = false;
+        }
+        
+        // Check terms and conditions
+        const termsChecked = document.getElementById('terms').checked;
+        if (!termsChecked) {
+            const termsInput = document.getElementById('terms');
+            termsInput.classList.add('is-invalid');
+            termsInput.setCustomValidity('You must agree to the terms and conditions');
+            isValid = false;
+        }
+        
+        if (!isValid) {
             form.classList.add('was-validated');
             return;
         }
@@ -183,30 +225,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password
+                })
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
+            if (response.ok) {
+                // Show success message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    Registration successful! Redirecting to login...
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                form.insertBefore(alertDiv, form.firstChild);
+
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect to home page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                // Reset button state immediately for error cases
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+
+                // Show error message
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+                alertDiv.innerHTML = `
+                    ${data.message || 'Registration failed'}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                form.insertBefore(alertDiv, form.firstChild);
             }
-
-            // Show success message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                Registration successful! Redirecting to login...
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            form.insertBefore(alertDiv, form.firstChild);
-
-            // Redirect to login page after successful registration
-            setTimeout(() => {
-                window.location.href = '/users/login';
-            }, 1500);
-
         } catch (error) {
+            // Reset button state immediately for any error
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Create Account';
+
+            // Remove any existing alerts
+            const existingAlerts = form.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+
             // Show error message
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-danger alert-dismissible fade show';
@@ -215,28 +284,125 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             `;
             form.insertBefore(alertDiv, form.firstChild);
-        } finally {
-            // Reset button state
-            const submitButton = form.querySelector('button[type="submit"]');
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Create Account';
         }
     });
 
-    // Password visibility toggle for both password fields
-    const togglePassword = document.getElementById('togglePassword');
-    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirmPassword');
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
 
-    function togglePasswordVisibility(input, button) {
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-        button.querySelector('i').classList.toggle('fa-eye');
-        button.querySelector('i').classList.toggle('fa-eye-slash');
-    }
+    document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const icon = this.querySelector('i');
+        
+        if (confirmPasswordInput.type === 'password') {
+            confirmPasswordInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            confirmPasswordInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
 
-    togglePassword.addEventListener('click', () => togglePasswordVisibility(password, togglePassword));
-    toggleConfirmPassword.addEventListener('click', () => togglePasswordVisibility(confirmPassword, toggleConfirmPassword));
+    // Real-time validation
+    const inputs = form.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.setCustomValidity('');
+            this.classList.remove('is-invalid');
+            if (this.id === 'confirmPassword') {
+                const password = document.getElementById('password').value;
+                if (this.value && this.value !== password) {
+                    this.setCustomValidity('Passwords do not match');
+                    this.classList.add('is-invalid');
+                }
+            }
+        });
+    });
+
+    // Email validation
+    const emailInput = document.getElementById('email');
+    emailInput.addEventListener('input', function() {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (this.value && !emailRegex.test(this.value)) {
+            this.classList.add('is-invalid');
+            this.setCustomValidity('Please enter a valid email address');
+        } else {
+            this.classList.remove('is-invalid');
+            if (this.value) {
+                this.classList.add('is-valid');
+            }
+            this.setCustomValidity('');
+        }
+    });
+
+    // Password validation
+    const passwordInput = document.getElementById('password');
+    const requirements = {
+        length: value => value.length >= 8,
+        uppercase: value => /[A-Z]/.test(value),
+        lowercase: value => /[a-z]/.test(value),
+        number: value => /\d/.test(value),
+        special: value => /[@$!%*?&]/.test(value)
+    };
+
+    passwordInput.addEventListener('input', function() {
+        const value = this.value;
+        let isValid = true;
+
+        // Check each requirement
+        Object.keys(requirements).forEach(req => {
+            const element = document.getElementById(`${req}-check`);
+            if (requirements[req](value)) {
+                element.classList.remove('text-muted');
+                element.classList.add('text-success');
+                element.innerHTML = `<i class="fas fa-check"></i> ` + element.innerHTML.replace('<i class="fas fa-check"></i> ', '');
+            } else {
+                element.classList.remove('text-success');
+                element.classList.add('text-muted');
+                element.innerHTML = element.innerHTML.replace('<i class="fas fa-check"></i> ', '');
+                isValid = false;
+            }
+        });
+
+        // Update input validation state
+        if (value && !isValid) {
+            this.classList.add('is-invalid');
+            this.setCustomValidity('Password must meet all requirements');
+        } else {
+            this.classList.remove('is-invalid');
+            if (value) {
+                this.classList.add('is-valid');
+            }
+            this.setCustomValidity('');
+        }
+
+        // Update confirm password validation if it has a value
+        const confirmPassword = document.getElementById('confirmPassword');
+        if (confirmPassword.value) {
+            if (confirmPassword.value !== value) {
+                confirmPassword.classList.add('is-invalid');
+                confirmPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPassword.classList.remove('is-invalid');
+                confirmPassword.classList.add('is-valid');
+                confirmPassword.setCustomValidity('');
+            }
+        }
+    });
 });
 </script> 
