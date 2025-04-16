@@ -15,7 +15,7 @@ export const getProducts = async (req, res) => {
             organic,
             search,
             page = 1,
-            limit = 12
+            limit = 100
         } = req.query;
 
         // Build filter object

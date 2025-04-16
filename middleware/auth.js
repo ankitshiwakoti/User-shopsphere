@@ -11,7 +11,7 @@ export const isAuthenticated = (req, res, next) => {
 
     // If not authenticated, redirect to login
     req.flash('error', 'Please log in to access this page');
-    res.redirect('/users/login');
+    res.redirect('/auth/login');
 };
 
 export const isAdmin = (req, res, next) => {
