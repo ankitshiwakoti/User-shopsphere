@@ -46,7 +46,7 @@ router.get('/api/products', async (req, res) => {
 router.get('/products', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 12;
+        const limit = parseInt(req.query.limit) || 100;
         const search = req.query.search || '';
         const category = req.query.category;
         const minPrice = parseFloat(req.query.minPrice);

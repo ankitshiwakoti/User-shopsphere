@@ -270,15 +270,52 @@ document.addEventListener('DOMContentLoaded', function() {
             currentPage = 1;
             hasMoreProducts = true;
             loadedProductIds.clear();
-            if (noMoreProducts) noMoreProducts.classList.add('d-none');
-            if (sentinel) sentinel.style.display = 'block';
             
             // Clear all existing products
-            const products = document.querySelectorAll('.product-card');
-            console.log('Found existing products:', products.length);
+            const productsContainer = document.querySelector('.products-container');
+            if (productsContainer) {
+                productsContainer.innerHTML = '';
+            }
             
-            products.forEach(product => {
-                product.closest('.col-md-6').remove();
+            // Reset loading states
+            if (noMoreProducts) noMoreProducts.classList.add('d-none');
+            if (sentinel) sentinel.style.display = 'block';
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+            
+            // Load first page of filtered results
+            loadMoreProducts().then(() => {
+                // Reinitialize cart functionality after products are loaded
+                if (window.Cart && typeof window.Cart.init === 'function') {
+                    window.Cart.init();
+                }
+                if (window.Cart && typeof window.Cart.initButtons === 'function') {
+                    window.Cart.initButtons();
+                }
+            });
+        }
+
+        // Handle search and filter changes
+        function handleSearchAndFilters() {
+            const searchInput = document.querySelector('input[name="search"]');
+            const filterForms = document.querySelectorAll('form[id$="FilterForm"], #categoryForm');
+            
+            // Handle search input
+            if (searchInput) {
+                let searchTimeout;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        resetInfiniteScroll();
+                    }, 500);
+                });
+            }
+            
+            // Handle filter form submissions
+            filterForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    resetInfiniteScroll();
+                });
             });
         }
 
@@ -320,6 +357,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initial event listeners
         attachEventListeners();
+
+        // Initialize the handlers when DOM is loaded
+        handleSearchAndFilters();
     }
 
     // Handle view options (grid/list view)

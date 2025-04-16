@@ -15,7 +15,7 @@ export const getShopPage = async (req, res) => {
         const searchQuery = req.query.search || '';
         const sortBy = req.query.sort || 'newest';
         const page = parseInt(req.query.page) || 1;
-        const limit = 12; // Products per page
+        const limit = 100; // Products per page
         
         // Get the highest price in the database
         const highestPriceProduct = await Product.findOne({ status: 'published' })

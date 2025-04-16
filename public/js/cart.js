@@ -7,18 +7,26 @@ window.Cart = {
             const data = await response.json();
             
             if (data.success) {
-                UI.updateCartCount(data.cartCount);
+                this.updateCartCount(data.cartCount);
             } else {
                 // If API call fails, use localStorage
                 const items = Storage.getCartItems();
-                UI.updateCartCount(items.length);
+                this.updateCartCount(items.length);
             }
         } catch (error) {
             console.error('Error initializing cart:', error);
             // Fallback to localStorage
             const items = Storage.getCartItems();
-            UI.updateCartCount(items.length);
+            this.updateCartCount(items.length);
         }
+    },
+
+    // Update cart count
+    updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(element => {
+            element.textContent = count;
+        });
     },
 
     // Add item to cart
@@ -35,7 +43,7 @@ window.Cart = {
             const data = await response.json();
             
             if (data.success) {
-                UI.updateCartCount(data.cartCount);
+                this.updateCartCount(data.cartCount);
                 
                 if (data.message === 'Product already in cart') {
                     UI.showToast('Product already in cart. Quantity updated!');
@@ -45,31 +53,28 @@ window.Cart = {
             } else {
                 // If API call fails, use localStorage
                 const items = Storage.addToCart(productId);
-                UI.updateCartCount(items.length);
+                this.updateCartCount(items.length);
                 UI.showToast('Product added to cart successfully!');
             }
         } catch (error) {
             console.error('Error adding to cart:', error);
             // Fallback to localStorage on network error
             const items = Storage.addToCart(productId);
-            UI.updateCartCount(items.length);
+            this.updateCartCount(items.length);
             UI.showToast('Product added to cart');
         }
     },
     
     // Initialize cart buttons
     initButtons() {
-        const addToCartButtons = document.querySelectorAll('.btn-add:not([data-initialized])');
+        const addToCartButtons = document.querySelectorAll('.btn-add');
         addToCartButtons.forEach(button => {
-            button.setAttribute('data-initialized', 'true');
-            button.addEventListener('click', function(e) {
+            button.addEventListener('click', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                
-                const productCard = this.closest('.product-card');
-                const productId = productCard.dataset.productId;
-                
-                Cart.addItem(productId);
+                const productId = button.dataset.productId;
+                if (productId) {
+                    this.addItem(productId);
+                }
             });
         });
     }
