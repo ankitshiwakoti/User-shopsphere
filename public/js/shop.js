@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle view options (grid/list view)
     const viewOptions = document.querySelectorAll('.view-options .btn');
-    const productsGrid = document.querySelector('#products-grid');
+    const productsGrid = document.querySelector('.products-container');
     
     if (viewOptions && productsGrid) {
         viewOptions.forEach(btn => {
